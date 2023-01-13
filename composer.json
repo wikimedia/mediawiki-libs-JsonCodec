@@ -1,0 +1,50 @@
+{
+	"name": "wikimedia/json-codec",
+	"description": "Interfaces to serialize and deserialize PHP objects to/from JSON",
+	"license": "GPL-2.0-or-later",
+	"homepage": "https://www.mediawiki.org/wiki/JsonCodec",
+	"authors": [
+		{
+			"name": "C. Scott Ananian",
+			"email": "cananian@wikimedia.org"
+		}
+	],
+	"autoload": {
+		"psr-4": {
+			"Wikimedia\\JsonCodec\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Wikimedia\\JsonCodec\\Tests\\": "tests/"
+		}
+	},
+	"require": {
+		"php": ">=7.4.3"
+	},
+	"require-dev": {
+		"mediawiki/mediawiki-codesniffer": "39.0.0",
+		"mediawiki/mediawiki-phan-config": "0.12.0",
+		"mediawiki/minus-x": "1.1.1",
+		"ockcyp/covers-validator": "1.6.0",
+		"php-parallel-lint/php-console-highlighter": "1.0.0",
+		"php-parallel-lint/php-parallel-lint": "1.3.2",
+		"phpunit/phpunit": "^9.5"
+	},
+	"scripts": {
+		"test": [
+			"parallel-lint . --exclude vendor",
+			"phpunit",
+			"covers-validator",
+			"phpcs -sp",
+			"@phan",
+			"minus-x check ."
+		],
+		"phan": "phan --allow-polyfill-parser",
+		"cover": "phpunit --coverage-html coverage",
+		"fix": [
+			"phpcbf",
+			"minus-x fix ."
+		]
+	}
+}

@@ -21,24 +21,25 @@
 
 namespace Wikimedia\JsonCodec;
 
+use InvalidArgumentException;
+
 /**
- * Helper class to serialize/unserialize things to/from JSON.
+ * Serializes things to JSON.
  *
  * @stable to type
  * @since 1.36
  * @package MediaWiki\Json
  */
-interface JsonCodec extends JsonDeserializer, JsonSerializer {
+interface JsonSerializer {
 
 	/**
-	 * Checks if the $value is JSON-serializable (contains only scalar values)
-	 * and returns a JSON-path to the first non-serializable property encountered.
+	 * Encode $value as JSON with an intent to use JsonDeserializer::deserialize
+	 * to decode it back.
 	 *
-	 * @param mixed $value
-	 * @param bool $expectDeserialize whether to expect the $value to be deserializable with JsonDeserializer.
-	 * @return string|null JSON path to first encountered non-serializable property or null.
-	 * @see JsonDeserializer
-	 * @since 1.36
+	 * @param mixed|JsonDeserializable $value A value to encode. Can be any scalar,
+	 * array, stdClass, JsonDeserializable or any combination of them.
+	 * @throws InvalidArgumentException if the value can not be serialized.
+	 * @return string
 	 */
-	public function detectNonSerializableData( $value, bool $expectDeserialize = false ): ?string;
+	public function serialize( $value );
 }

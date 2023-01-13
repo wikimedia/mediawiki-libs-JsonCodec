@@ -5,6 +5,14 @@
 	"homepage": "https://www.mediawiki.org/wiki/JsonCodec",
 	"authors": [
 		{
+			"name": "Petr Pchelko",
+			"email": "ppchelko@wikimedia.org"
+		},
+		{
+			"name": "Daniel Kinzler",
+			"email": "dkinzler@wikimedia.org"
+		},
+		{
 			"name": "C. Scott Ananian",
 			"email": "cananian@wikimedia.org"
 		}

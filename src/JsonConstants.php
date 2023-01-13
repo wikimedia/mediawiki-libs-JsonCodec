@@ -22,23 +22,19 @@
 namespace Wikimedia\JsonCodec;
 
 /**
- * Helper class to serialize/unserialize things to/from JSON.
- *
- * @stable to type
- * @since 1.36
- * @package MediaWiki\Json
+ * Defines JSON-related constants.
+ * @internal
  */
-interface JsonCodec extends JsonDeserializer, JsonSerializer {
+interface JsonConstants {
 
 	/**
-	 * Checks if the $value is JSON-serializable (contains only scalar values)
-	 * and returns a JSON-path to the first non-serializable property encountered.
-	 *
-	 * @param mixed $value
-	 * @param bool $expectDeserialize whether to expect the $value to be deserializable with JsonDeserializer.
-	 * @return string|null JSON path to first encountered non-serializable property or null.
-	 * @see JsonDeserializer
-	 * @since 1.36
+	 * Name of the property where the class information is stored.
 	 */
-	public function detectNonSerializableData( $value, bool $expectDeserialize = false ): ?string;
+	public const TYPE_ANNOTATION = '_type_';
+
+	/**
+	 * Name of the marker property to indicate that array contents
+	 * need to be examined during unserialization.
+	 */
+	public const COMPLEX_ANNOTATION = '_complex_';
 }

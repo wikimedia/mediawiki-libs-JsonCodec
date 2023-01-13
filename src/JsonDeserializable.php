@@ -22,23 +22,23 @@
 namespace Wikimedia\JsonCodec;
 
 /**
- * Helper class to serialize/unserialize things to/from JSON.
+ * Classes implementing this interface supports deserialization from
+ * Json using the JsonUnserializer utility.  This interface parallels
+ * the JsonSerializer interface in PHP core.
  *
- * @stable to type
- * @since 1.36
- * @package MediaWiki\Json
+ * The resulting JSON must be typically annotated with class information
+ * by JsonCodec so that the correct jsonDeserialize() method is invoked.
+ *
+ * @see JsonDeserializer
  */
-interface JsonCodec extends JsonDeserializer, JsonSerializer {
+interface JsonDeserializable {
 
 	/**
-	 * Checks if the $value is JSON-serializable (contains only scalar values)
-	 * and returns a JSON-path to the first non-serializable property encountered.
-	 *
-	 * @param mixed $value
-	 * @param bool $expectDeserialize whether to expect the $value to be deserializable with JsonDeserializer.
-	 * @return string|null JSON path to first encountered non-serializable property or null.
-	 * @see JsonDeserializer
-	 * @since 1.36
+	 * Creates a new instance of the class and initializes it from the $json
+	 * array.
+	 * @param array $json
+	 * @return JsonDeserializable
 	 */
-	public function detectNonSerializableData( $value, bool $expectDeserialize = false ): ?string;
+	public static function jsonDeserialize( array $json );
+
 }

@@ -18,37 +18,50 @@
 
 namespace Wikimedia\JsonCodec;
 
+use Psr\Container\ContainerInterface;
 use stdClass;
 
+/**
+ * The JsonCodecableTrait aids in the implementation of stateless codecs.
+ * The class using the trait need only define stateless ::toJsonArray() and
+ * ::newFromJsonArray() methods.
+ */
 trait JsonCodecableTrait {
 
 	/**
-	 * Implement JsonSerializable using JsonCodecable methods.
+	 * Implements JsonCodecable by providing an implementation of
+	 * ::jsonClassCodec() which does not use the provided $serviceContainer
+	 * nor does it maintain any state; it just calls the ::toJsonArray()
+	 * and ::newFromJsonArray() methods of this instance.
+	 * @param ContainerInterface $serviceContainer
+	 * @return JsonClassCodec
+	 */
+	public static function jsonClassCodec( ContainerInterface $serviceContainer ): JsonClassCodec {
+		return new class() implements JsonClassCodec {
+			/** @inheritDoc */
+			public function toJsonArray( $obj ): array {
+				return $obj->toJsonArray();
+			}
+
+			/** @inheritDoc */
+			public function newFromJsonArray( string $classname, array $json ) {
+				return $classname::newFromJsonArray( $json );
+			}
+		};
+	}
+
+	/**
+	 * Return an associative array representing the contents of this object,
+	 * which can be passed to ::newFromJsonArray() to deserialize it.
 	 * @return array
 	 */
-	public function jsonSerialize(): array {
-		'@phan-var JsonCodecable $this';
-		$json = $this->toJsonArray();
-		$json[JsonConstants::TYPE_ANNOTATION] = get_class( $this );
-		return $json;
-	}
+	abstract public function toJsonArray(): array;
 
-	/** Implement JsonDeserializable using JsonCodecable methods.
+	/**
+	 * Return an instance of this object representing the deserialization
+	 * from the array passed in $json.
 	 * @param array $json
-	 * @return JsonCodecable
+	 * @return stdClass
 	 */
-	public static function jsonDeserialize( array $json ) {
-		$class = $json[JsonConstants::TYPE_ANNOTATION];
-		if ( $class !== stdClass::class &&
-			 !( class_exists( $class ) && is_subclass_of( $class, JsonCodecable::class ) )
-		) {
-			throw new \InvalidArgumentException( "Invalid target class {$class}" );
-		}
-
-		if ( $class === stdClass::class ) {
-			unset( $json[JsonConstants::TYPE_ANNOTATION] );
-			return (object)$json;
-		}
-		return $class::newFromJsonArray( $json );
-	}
+	abstract public static function newFromJsonArray( array $json ): stdClass;
 }

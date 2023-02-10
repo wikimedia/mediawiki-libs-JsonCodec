@@ -1,4 +1,6 @@
 <?php
+declare( strict_types=1 );
+
 /**
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,39 +23,26 @@
 
 namespace Wikimedia\JsonCodec;
 
+use Psr\Container\ContainerInterface;
+
 /**
  * Classes implementing this interface support round-trip JSON
- * serialization/deserialization using the JsonCodec.
+ * serialization/deserialization via a JsonClassCodec object
+ * (which may maintain state and/or consult service objects).
+ * It requires a single static method to be defined which
+ * allows the creation of an appropriate JsonClassCodec
+ * for this class.
  *
- * The resulting JSON must be annotated with class information for
- * deserialization to work.  Use the JsonCodecableTrait when
- * implementing classes which annotates the JSON automatically.
- *
- * @see JsonCodec
- * @see JsonCodecableTrait
- * @since 1.36
+ * @since 1.40
  */
 interface JsonCodecable {
 
 	/**
-	 * Returns a JSON array representing the contents of this class, that
-	 * can be deserialized with the corresponding newFromJsonArray() method.
-	 *
-	 * The returned array can contain other JsonCodecables as values;
-	 * the JsonCodec class will take care of encoding values in the array
-	 * as needed, as well as annotating the returned array with the class
-	 * information needed to locate the correct ::newFromJsonArray()
-	 * method during deserialization.
-	 *
-	 * @return array A Json representation of this instance
+	 * Create a JsonClassCodec which can serialize/deserialize instances of
+	 * this class.
+	 * @param ContainerInterface|null $serviceContainer A service container
+	 * @return JsonClassCodec A JsonClassCodec appropriate for objects of
+	 *  this type.
 	 */
-	public function toJsonArray(): array;
-
-	/**
-	 * Creates a new instance of the class and initialized it from the
-	 * $json array.
-	 * @param array $json
-	 * @return JsonCodecable
-	 */
-	public static function newFromJsonArray( array $json );
+	public static function jsonClassCodec( ContainerInterface $serviceContainer = null ): JsonClassCodec;
 }

@@ -37,4 +37,9 @@ interface JsonConstants {
 	 * need to be examined during unserialization.
 	 */
 	public const COMPLEX_ANNOTATION = '_complex_';
+
+	public const ALL = [
+		self::TYPE_ANNOTATION,
+		self::COMPLEX_ANNOTATION,
+	];
 }

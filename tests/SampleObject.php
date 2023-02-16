@@ -18,7 +18,6 @@ class SampleObject implements JsonCodecable {
 	 * @param string $property
 	 */
 	public function __construct( string $property ) {
-		error_log( "Initializing property to $property" );
 		$this->property = $property;
 	}
 

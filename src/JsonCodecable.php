@@ -40,9 +40,9 @@ interface JsonCodecable {
 	/**
 	 * Create a JsonClassCodec which can serialize/deserialize instances of
 	 * this class.
-	 * @param ContainerInterface|null $serviceContainer A service container
+	 * @param ContainerInterface $serviceContainer A service container
 	 * @return JsonClassCodec A JsonClassCodec appropriate for objects of
 	 *  this type.
 	 */
-	public static function jsonClassCodec( ContainerInterface $serviceContainer = null ): JsonClassCodec;
+	public static function jsonClassCodec( ContainerInterface $serviceContainer ): JsonClassCodec;
 }

@@ -13,12 +13,17 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 	 * @covers ::toJsonString
 	 * @covers ::newFromJsonString
 	 * @dataProvider provideBasicValues
+	 * @dataProvider provideCodecableValues
 	 */
-	public function testBasicFunctionality( $value ) {
+	public function testBasicFunctionality( $value, $strict = true ) {
 		$c = new JsonCodec();
 		$s = $c->toJsonString( $value );
 		$v = $c->newFromJsonString( $s );
-		$this->assertSame( $value, $v );
+		if ( $strict ) {
+			$this->assertSame( $value, $v );
+		} else {
+			$this->assertEquals( $value, $v );
+		}
 	}
 
 	public function provideBasicValues() {
@@ -28,6 +33,13 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 			[ [] ],
 			[ 42 ],
 			[ [ 'a' => 1, 'b' => 2 ] ],
+		];
+	}
+
+	public function provideCodecableValues() {
+		return [
+			[ new SampleObject( 'a' ), false ],
+			[ new SampleObject( 'abc123' ), false ],
 		];
 	}
 }

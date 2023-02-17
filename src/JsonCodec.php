@@ -38,6 +38,13 @@ class JsonCodec {
 	protected array $codecs;
 
 	/**
+	 * Name of the property where class information is stored; it also
+	 * is used to mark "complex" arrays, and as a place to store the contents
+	 * of any pre-existing array property that happened to have the same name.
+	 */
+	private const TYPE_ANNOTATION = '_type_';
+
+	/**
 	 * @param ?ContainerInterface $serviceContainer
 	 */
 	public function __construct( ?ContainerInterface $serviceContainer = null ) {
@@ -123,7 +130,7 @@ class JsonCodec {
 	 */
 	public function toJsonArray( $value ) {
 		$is_complex = false;
-		$className = null;
+		$className = 'array';
 		if ( $value instanceof JsonCodecable ) {
 			$className = get_class( $value );
 			$value = $this->codecFor( $className )->toJsonArray( $value );
@@ -135,21 +142,18 @@ class JsonCodec {
 			$value = (array)$value;
 			$className = stdClass::class;
 			$is_complex = true;
+		} elseif (
+			is_array( $value ) &&
+			array_key_exists( self::TYPE_ANNOTATION, $value )
+		) {
+			$is_complex = true;
 		}
 		if ( is_array( $value ) ) {
 			// Recursively convert array values to serializable form
 			foreach ( $value as $key => &$v ) {
-				if (
-					$key === JsonConstants::COMPLEX_ANNOTATION ||
-					$key === JsonConstants::TYPE_ANNOTATION
-				) {
-					// If the array uses our reserved words, we need to
-					// mark it as 'complex'
-					$is_complex = true;
-				}
 				if ( is_object( $v ) || is_array( $v ) ) {
 					$v = $this->toJsonArray( $v );
-					if ( array_key_exists( JsonConstants::COMPLEX_ANNOTATION, $v ) ) {
+					if ( array_key_exists( self::TYPE_ANNOTATION, $v ) ) {
 						// an array which contains complex components is
 						// itself complex.
 						$is_complex = true;
@@ -159,7 +163,11 @@ class JsonCodec {
 			// Ok, now mark the array, being careful to transfer away
 			// any fields with the same names as our markers.
 			if ( $is_complex ) {
-				static::markComplex( $className, $value );
+				if ( array_key_exists( self::TYPE_ANNOTATION, $value ) ) {
+					$value[self::TYPE_ANNOTATION] = [ $className, $value[self::TYPE_ANNOTATION] ];
+				} else {
+					$value[self::TYPE_ANNOTATION] = $className;
+				}
 			}
 		} elseif ( !is_scalar( $value ) && $value !== null ) {
 			throw new InvalidArgumentException(
@@ -184,22 +192,21 @@ class JsonCodec {
 			$json = (array)$json;
 		}
 		// Is this an array containing a complex value?
-		if ( is_array( $json ) && array_key_exists( JsonConstants::COMPLEX_ANNOTATION, $json ) ) {
+		if ( is_array( $json ) && array_key_exists( self::TYPE_ANNOTATION, $json ) ) {
 			// Read out our metadata
-			$className = $json[JsonConstants::TYPE_ANNOTATION] ?? null;
-			$complex = $json[JsonConstants::COMPLEX_ANNOTATION];
-			// Transfer protected fields from $complex back to $json
-			foreach ( JsonConstants::ALL as $fld ) {
-				if ( array_key_exists( $fld, $complex ) ) {
-					$json[$fld] = $complex[$fld];
-				} else {
-					unset( $json[$fld] );
-				}
+			$className = $json[self::TYPE_ANNOTATION];
+			// Remove our marker and restore the previous state of the
+			// json array (restoring a pre-existing field if needed)
+			if ( is_array( $className ) ) {
+				$json[self::TYPE_ANNOTATION] = $className[1];
+				$className = $className[0];
+			} else {
+				unset( $json[self::TYPE_ANNOTATION] );
 			}
 			// Recursively unserialize the array contents.
 			$unserialized = [];
 			foreach ( $json as $key => $value ) {
-				if ( is_array( $value ) && array_key_exists( JsonConstants::COMPLEX_ANNOTATION, $value ) ) {
+				if ( is_array( $value ) && array_key_exists( self::TYPE_ANNOTATION, $value ) ) {
 					$unserialized[$key] = $this->newFromJsonArray( $value );
 				} else {
 					$unserialized[$key] = $value;
@@ -208,7 +215,7 @@ class JsonCodec {
 			// Use a JsonCodec to create the object instance if appropriate.
 			if ( $className === stdClass::class ) {
 				$json = (object)$unserialized;
-			} elseif ( $className ) {
+			} elseif ( $className !== 'array' ) {
 				$json = $this->codecFor( $className )->newFromJsonArray( $className, $unserialized );
 			} else {
 				$json = $unserialized;
@@ -216,34 +223,4 @@ class JsonCodec {
 		}
 		return $json;
 	}
-
-	/**
-	 * Mark the given array value as "complex" and transfer its protected
-	 * fields to inside the complex flag value.
-	 * @param ?class-string $className
-	 * @param array &$value
-	 */
-	private static function markComplex( ?string $className, array &$value ) {
-		// Sets the 'complex' flag; also ensures that the given value
-		// doesn't contain any fields which would conflict with our
-		// JsonConstants, if needed moving them inside the 'complex'
-		// field to protect them from being overwritten.
-		$complex = [];
-		foreach ( JsonConstants::ALL as $fld ) {
-			if ( array_key_exists( $fld, $value ) ) {
-				$complex[$fld] = $value[$fld];
-			}
-		}
-		$value[JsonConstants::TYPE_ANNOTATION] = $className;
-		$value[JsonConstants::COMPLEX_ANNOTATION] = $complex;
-	}
-
-	/**
-	 * Serialize the given value.
-	 * @param mixed|null $value
-	 * @return mixed|null the serialized $value
-	 */
-	private function serializeOne( $value ) {
-	}
-
 }

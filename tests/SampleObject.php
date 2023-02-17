@@ -1,6 +1,7 @@
 <?php
 namespace Wikimedia\JsonCodec\Tests;
 
+use Wikimedia\Assert\Assert;
 use Wikimedia\JsonCodec\JsonCodecable;
 use Wikimedia\JsonCodec\JsonCodecableTrait;
 
@@ -26,11 +27,18 @@ class SampleObject implements JsonCodecable {
 
 	/** @inheritDoc */
 	public function toJsonArray(): array {
-		return [ 'property' => $this->property ];
+		return [
+			'property' => $this->property,
+			// Implementers shouldn't have to know which properties the
+			// codec is using for its own purposes; this will still work
+			// fine:
+			'_type_' => 'check123',
+		];
 	}
 
 	/** @inheritDoc */
 	public static function newFromJsonArray( array $json ): SampleObject {
+		Assert::invariant( $json['_type_'] === 'check123', 'protected field' );
 		return new SampleObject( $json['property'] );
 	}
 }

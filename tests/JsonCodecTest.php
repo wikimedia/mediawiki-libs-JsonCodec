@@ -61,6 +61,10 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 			[ [] ],
 			[ 42 ],
 			[ [ 'a' => 1, 'b' => 2 ] ],
+			[ (object)[ 'a' => 1, 'b' => 2 ], false ],
+			// even arrays which contain the "protected" field names should
+			// be fine.
+			[ [ '_type_' => 'lalala' ] ],
 		];
 	}
 

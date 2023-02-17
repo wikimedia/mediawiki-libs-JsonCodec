@@ -16,16 +16,20 @@ class ManagedObject implements JsonCodecable {
 	public int $data;
 
 	/**
-	 * Create a new ManagedObject which stores $property.
+	 * Create a new ManagedObject which stores $property.  This constructor
+	 * shouldn't be invoked directly by anyone except ManagedObjectFactory.
+	 *
 	 * @param string $name
 	 * @param int $data
+	 * @internal
 	 */
 	public function __construct( string $name, int $data ) {
 		$this->name = $name;
 		$this->data = $data;
 	}
 
-	// Implement JsonCodecable
+	// Implement JsonCodecable by delegating serialization/deserialization
+	// to the 'ManagedObjectFactory' service.
 
 	/** @inheritDoc */
 	public static function jsonClassCodec( ContainerInterface $serviceContainer ): JsonClassCodec {

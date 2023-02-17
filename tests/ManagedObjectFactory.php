@@ -4,12 +4,13 @@ namespace Wikimedia\JsonCodec\Tests;
 use Wikimedia\JsonCodec\JsonClassCodec;
 
 /**
- * Managed object which uses a factory in a service.
+ * Managed object factory which also handles serialization/deserialization
+ * of the objects it manages.
  *
  * @implements JsonClassCodec<ManagedObject>
  */
 class ManagedObjectFactory implements JsonClassCodec {
-	/** @var array<string,ManagedObject> */
+	/** @var array<string,ManagedObject> Fake database */
 	private $storage = [];
 
 	/**
@@ -41,7 +42,8 @@ class ManagedObjectFactory implements JsonClassCodec {
 	/** @inheritDoc */
 	public function toJsonArray( $obj ): array {
 		'@phan-var ManagedObject $obj';
-		// Not necessary to serialize all the properties
+		// Not necessary to serialize all the properties, since they
+		// will be reloaded from the "database" during deserialization
 		return [ 'name' => $obj->name ];
 	}
 

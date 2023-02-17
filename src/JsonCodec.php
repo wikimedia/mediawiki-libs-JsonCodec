@@ -42,7 +42,7 @@ class JsonCodec {
 	 */
 	public function __construct( ?ContainerInterface $serviceContainer = null ) {
 		$this->serviceContainer = $serviceContainer ??
-			// Use an empty container
+			// Use an empty container if none is provided.
 			new class implements ContainerInterface {
 				/**
 				 * @param string $id
@@ -62,7 +62,7 @@ class JsonCodec {
 
 	/**
 	 * Recursively converts a given object to a JSON-encoded string.
-	 * While serializing this JsonCodec delegates to the appropriate
+	 * While serializing the $value JsonCodec delegates to the appropriate
 	 * JsonClassCodecs of any classes which implement JsonCodecable.
 	 *
 	 * @param mixed|null $value
@@ -78,7 +78,7 @@ class JsonCodec {
 
 	/**
 	 * Recursively converts a JSON-encoded string to an object value or scalar.
-	 * While deserializing this JsonCodec delegates to the appropriate
+	 * While deserializing the $json JsonCodec delegates to the appropriate
 	 * JsonClassCodecs of any classes which implement JsonCodecable.
 	 *
 	 * @param string $json A JSON-encoded string
@@ -91,6 +91,11 @@ class JsonCodec {
 	}
 
 	/**
+	 * Maintain a cache giving the codec for a given class name.
+	 *
+	 * Reusing this JsonCodec object will also reuse this cache, which
+	 * could improve performance somewhat.
+	 *
 	 * @param class-string<JsonCodecable> $className
 	 * @return JsonClassCodec
 	 */
@@ -109,8 +114,9 @@ class JsonCodec {
 	 * another context it is sometimes useful to have the array
 	 * representation rather than the string JSON form of the array;
 	 * this can also be useful if you want to pretty-print the result,
-	 * etc.)  While serializing the JsonCodec delegates to the appropriate
-	 * JsonClassCodecs of any classes which implement JsonCodecable.
+	 * etc.)  While converting $value the JsonCodec delegates to the
+	 * appropriate JsonClassCodecs of any classes which implement
+	 * JsonCodecable.
 	 *
 	 * @param mixed|null $value
 	 * @return mixed|null
@@ -165,7 +171,7 @@ class JsonCodec {
 
 	/**
 	 * Recursively converts an associative array (or scalar) to an
-	 * object value (or scalar).  While deserializing this JsonCodec
+	 * object value (or scalar).  While converting this value JsonCodec
 	 * delegates to the appropriate JsonClassCodecs of any classes which
 	 * implement JsonCodecable.
 	 *

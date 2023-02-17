@@ -25,6 +25,10 @@ use stdClass;
  * The JsonCodecableTrait aids in the implementation of stateless codecs.
  * The class using the trait need only define stateless ::toJsonArray() and
  * ::newFromJsonArray() methods.
+ *
+ * The class using the trait should also implement JsonCodecable
+ * (https://wiki.php.net/rfc/traits-with-interfaces may allow the trait
+ * to do this directly in a future PHP version).
  */
 trait JsonCodecableTrait {
 
@@ -37,6 +41,10 @@ trait JsonCodecableTrait {
 	 * @return JsonClassCodec
 	 */
 	public static function jsonClassCodec( ContainerInterface $serviceContainer ): JsonClassCodec {
+		// In theory this could be a singleton object shared with all
+		// classes which use this trait.  However, in advanced JIT
+		// implementations optimization of the method dispatch in this class
+		// can be performed if we keep the codecs for each class separate.
 		return new class() implements JsonClassCodec {
 			/** @inheritDoc */
 			public function toJsonArray( $obj ): array {

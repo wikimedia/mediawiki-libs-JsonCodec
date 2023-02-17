@@ -5,7 +5,8 @@ use Wikimedia\JsonCodec\JsonCodecable;
 use Wikimedia\JsonCodec\JsonCodecableTrait;
 
 /**
- * Sample object which uses JsonCodecableTrait.
+ * Sample object which uses JsonCodecableTrait to directly implement
+ * serialization/deserialization.
  */
 class SampleObject implements JsonCodecable {
 	use JsonCodecableTrait;
@@ -21,7 +22,7 @@ class SampleObject implements JsonCodecable {
 		$this->property = $property;
 	}
 
-	// Implement JsonCodecable
+	// Implement JsonCodecable using the JsonCodecableTrait
 
 	/** @inheritDoc */
 	public function toJsonArray(): array {

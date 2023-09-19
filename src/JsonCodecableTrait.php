@@ -41,21 +41,12 @@ trait JsonCodecableTrait {
 	 * @return JsonClassCodec
 	 */
 	public static function jsonClassCodec( ContainerInterface $serviceContainer ): JsonClassCodec {
-		// In theory this could be a singleton object shared with all
-		// classes which use this trait.  However, in advanced JIT
-		// implementations optimization of the method dispatch in this class
-		// can be performed if we keep the codecs for each class separate.
-		return new class() implements JsonClassCodec {
-			/** @inheritDoc */
-			public function toJsonArray( $obj ): array {
-				return $obj->toJsonArray();
-			}
-
-			/** @inheritDoc */
-			public function newFromJsonArray( string $classname, array $json ) {
-				return $classname::newFromJsonArray( $json );
-			}
-		};
+		// In advanced JIT implementations optimization of the method
+		// dispatch in this class can be performed if we keep the
+		// codecs for each class separate.  However, for simplicity
+		// (and to reduce memory usage) we'll use a singleton object
+		// shared with all classes which use this trait.
+		return JsonStaticClassCodec::getInstance();
 	}
 
 	/**

@@ -32,8 +32,6 @@ use Psr\Container\ContainerInterface;
  * It requires a single static method to be defined which
  * allows the creation of an appropriate JsonClassCodec
  * for this class.
- *
- * @since 1.40
  */
 interface JsonCodecable {
 

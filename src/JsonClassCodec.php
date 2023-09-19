@@ -18,7 +18,6 @@ declare( strict_types=1 );
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
- * @ingroup Json
  */
 
 namespace Wikimedia\JsonCodec;
@@ -30,7 +29,6 @@ namespace Wikimedia\JsonCodec;
  * are stored in the codec object.
  *
  *
- * @since 1.40
  * @template T
  */
 interface JsonClassCodec {
@@ -54,7 +52,7 @@ interface JsonClassCodec {
 	public function toJsonArray( $obj ): array;
 
 	/**
-	 * Creates a new instance of the given class and initialized it from the
+	 * Creates a new instance of the given class and initializes it from the
 	 * $json array.
 	 * @param class-string<T> $className
 	 * @param array $json

@@ -150,7 +150,7 @@ class JsonCodec {
 		}
 		if ( is_array( $value ) ) {
 			// Recursively convert array values to serializable form
-			foreach ( $value as $key => &$v ) {
+			foreach ( $value as $unused => &$v ) {
 				if ( is_object( $v ) || is_array( $v ) ) {
 					$v = $this->toJsonArray( $v );
 					if ( array_key_exists( self::TYPE_ANNOTATION, $v ) ) {

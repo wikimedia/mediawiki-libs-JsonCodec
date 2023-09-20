@@ -34,9 +34,6 @@ class JsonCodec {
 	/** @var ContainerInterface Service container */
 	protected ContainerInterface $serviceContainer;
 
-	/** @var array<class-string,JsonClassCodec> Class codecs */
-	protected array $codecs;
-
 	/**
 	 * Name of the property where class information is stored; it also
 	 * is used to mark "complex" arrays, and as a place to store the contents
@@ -104,13 +101,26 @@ class JsonCodec {
 	 * could improve performance somewhat.
 	 *
 	 * @param class-string<JsonCodecable> $className
+	 * @param array<class-string,array{codec:JsonClassCodec,data:array}> $context
 	 * @return JsonClassCodec
 	 */
-	protected function codecFor( string $className ): JsonClassCodec {
-		$codec = $this->codecs[$className] ?? null;
+	protected function codecFor( string $className, array $context ): JsonClassCodec {
+		// XXX should cache be in context, not $this->codecs?
+		// or give class an option.  Maybe pass $context to jsonClassCodec
+		// (but then can't cache except in context).
+		// Maybe each class has it's own section of the context array.
+		// $context[$classname] = [ 'codec' => ..., 'data' => [] ];
+		$codec = $context[$className]['codec'] ?? null;
 		if ( !$codec ) {
-			$codec = $this->codecs[$className] =
-				   $className::jsonClassCodec( $this->serviceContainer );
+			// XXX Perhaps should give class codec access to context data
+			//     from parent classes?
+			$data = [];
+			$codec =
+				$className::jsonClassCodec( $this->serviceContainer, $data );
+			$context[$className] = [
+				'codec' => $codec,
+				'data' => &$data,
+			];
 		}
 		return $codec;
 	}
@@ -129,11 +139,21 @@ class JsonCodec {
 	 * @return mixed|null
 	 */
 	public function toJsonArray( $value ) {
+		$context = [];
+		return $this->toJsonArrayInternal( $value, $context );
+	}
+
+	/**
+	 * @param mixed|null $value
+	 * @param array<class-string,array{codec:JsonClassCodec,data:array}> &$context
+	 * @return mixed|null
+	 */
+	protected function toJsonArrayInternal( $value, array &$context ) {
 		$is_complex = false;
 		$className = 'array';
 		if ( $value instanceof JsonCodecable ) {
 			$className = get_class( $value );
-			$value = $this->codecFor( $className )->toJsonArray( $value );
+			$value = $this->codecFor( $className, $context )->toJsonArray( $value );
 			$is_complex = true;
 		} elseif (
 			is_object( $value ) &&
@@ -152,7 +172,7 @@ class JsonCodec {
 			// Recursively convert array values to serializable form
 			foreach ( $value as $unused => &$v ) {
 				if ( is_object( $v ) || is_array( $v ) ) {
-					$v = $this->toJsonArray( $v );
+					$v = $this->toJsonArrayInternal( $v, $context );
 					if ( array_key_exists( self::TYPE_ANNOTATION, $v ) ) {
 						// an array which contains complex components is
 						// itself complex.
@@ -187,6 +207,16 @@ class JsonCodec {
 	 * @return mixed|null
 	 */
 	public function newFromJsonArray( $json ) {
+		$context = [];
+		return $this->newFromJsonArrayInternal( $json, $context );
+	}
+
+	/**
+	 * @param mixed|null $json
+	 * @param array<class-string,array{codec:JsonClassCodec,data:array}> &$context
+	 * @return mixed|null
+	 */
+	protected function newFromJsonArrayInternal( $json, array &$context ) {
 		if ( $json instanceof stdClass ) {
 			// We *shouldn't* be given an object... but we might.
 			$json = (array)$json;
@@ -207,7 +237,7 @@ class JsonCodec {
 			$unserialized = [];
 			foreach ( $json as $key => $value ) {
 				if ( is_array( $value ) && array_key_exists( self::TYPE_ANNOTATION, $value ) ) {
-					$unserialized[$key] = $this->newFromJsonArray( $value );
+					$unserialized[$key] = $this->newFromJsonArrayInternal( $value, $context );
 				} else {
 					$unserialized[$key] = $value;
 				}
@@ -216,7 +246,7 @@ class JsonCodec {
 			if ( $className === stdClass::class ) {
 				$json = (object)$unserialized;
 			} elseif ( $className !== 'array' ) {
-				$json = $this->codecFor( $className )->newFromJsonArray( $className, $unserialized );
+				$json = $this->codecFor( $className, $context )->newFromJsonArray( $className, $unserialized );
 			} else {
 				$json = $unserialized;
 			}

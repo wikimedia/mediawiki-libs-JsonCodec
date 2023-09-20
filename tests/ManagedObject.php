@@ -32,7 +32,7 @@ class ManagedObject implements JsonCodecable {
 	// to the 'ManagedObjectFactory' service.
 
 	/** @inheritDoc */
-	public static function jsonClassCodec( ContainerInterface $serviceContainer ): JsonClassCodec {
+	public static function jsonClassCodec( ContainerInterface $serviceContainer, array &$data ): JsonClassCodec {
 		return $serviceContainer->get( 'ManagedObjectFactory' );
 	}
 }

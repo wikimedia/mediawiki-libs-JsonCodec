@@ -38,9 +38,10 @@ trait JsonCodecableTrait {
 	 * nor does it maintain any state; it just calls the ::toJsonArray()
 	 * and ::newFromJsonArray() methods of this instance.
 	 * @param ContainerInterface $serviceContainer
+	 * @param array &$data
 	 * @return JsonClassCodec
 	 */
-	public static function jsonClassCodec( ContainerInterface $serviceContainer ): JsonClassCodec {
+	public static function jsonClassCodec( ContainerInterface $serviceContainer, array &$data ): JsonClassCodec {
 		// In advanced JIT implementations optimization of the method
 		// dispatch in this class can be performed if we keep the
 		// codecs for each class separate.  However, for simplicity

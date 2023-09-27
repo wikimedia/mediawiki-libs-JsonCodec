@@ -99,6 +99,76 @@ $request->jsonResponse( [ 'error': false, 'embedded': $array_result ] );
 $someComplexValue = $codec->fromJsonArray( $data['embedded'] );
 ```
 
+### More concise output
+
+By default JsonCodec embeds the class name of the appropriate object
+type into the JSON output to enable reliable deserialization.  In some
+applications, however, concise JSON output is desired.  By providing
+an optional "class hint" to the top-level call to `::toJsonArray()` and
+`newFromJsonArray()` and implementing the `::jsonClassHintFor()`
+method in your class codec you can suppress unnecessary type
+information in the JSON (when your provided hint matches what would
+have been added).  For example:
+
+```
+class SampleContainerObject implements JsonCodecable {
+	use JsonCodecableTrait;
+
+	/** @var mixed */
+	public $contents;
+
+    // ...
+
+	// Implement JsonCodecable using the JsonCodecableTrait
+
+	/** @inheritDoc */
+	public function toJsonArray(): array {
+		return [ 'contents' => $this->contents ];
+	}
+
+	/** @inheritDoc */
+	public static function newFromJsonArray( array $json ): SampleContainerObject {
+		return new SampleContainerObject( $json['contents'] );
+	}
+
+	/** @inheritDoc */
+	public static function jsonClassHintFor( string $keyName ): ?string {
+		if ( $keyName === 'contents' ) {
+			// Hint that the contained value is a SampleObject. It might be!
+			return SampleObject::class;
+		}
+		return null;
+	}
+}
+```
+
+You can then generate concise output by providing the proper hints
+when serializing and deserializing:
+```
+use Wikimedia\JsonCodec\JsonCodec;
+
+$codec = new JsonCodec();
+
+$value = new SampleContainerObject( new SampleObject( 'sample' ) );
+$string_result = $codec->toJsonString( $value, SampleContainerObject::class );
+
+// $string_result is now:
+//    {"contents":{"property":"sample"}}'
+// with no explicit type information.
+
+// But we need to provide the same class hint when deserializing:
+$value = $codec->newFromJsonString( $string_result, SampleContainerObject::class );
+```
+
+Note that the provided value is a *hint*.  If we were to put a value
+other than a `SampleObject` into the `SampleContainerObject` the type
+of that value would be embedded into the JSON output, but it would not
+break serialization/deserialization.
+
+A full example can be found in
+[`tests/SampleContainerObject.php`](./tests/SampleContainerObject.php).
+
+
 Running tests
 -------------
 

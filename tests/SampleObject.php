@@ -27,6 +27,10 @@ class SampleObject implements JsonCodecable {
 
 	/** @inheritDoc */
 	public function toJsonArray(): array {
+		if ( $this->property === 'suppress _type_' ) {
+			// Allow testing both with and without the '_type_' special case
+			return [ 'property' => $this->property ];
+		}
 		return [
 			'property' => $this->property,
 			// Implementers shouldn't have to know which properties the
@@ -38,7 +42,9 @@ class SampleObject implements JsonCodecable {
 
 	/** @inheritDoc */
 	public static function newFromJsonArray( array $json ): SampleObject {
-		Assert::invariant( $json['_type_'] === 'check123', 'protected field' );
+		if ( $json['property'] !== 'suppress _type_' ) {
+			Assert::invariant( $json['_type_'] === 'check123', 'protected field' );
+		}
 		return new SampleObject( $json['property'] );
 	}
 }

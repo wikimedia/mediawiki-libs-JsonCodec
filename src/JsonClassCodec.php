@@ -59,4 +59,17 @@ interface JsonClassCodec {
 	 * @return T
 	 */
 	public function newFromJsonArray( string $className, array $json );
+
+	/**
+	 * Return an optional type hint for the given array key in the result of
+	 * ::toJsonArray() / input to ::newFromJsonArray.  If a class name is
+	 * returned here and it matches the runtime type of the value of that
+	 * array key, then type information will be omitted from the generated
+	 * JSON which can save space.
+	 *
+	 * @param class-string<T> $className The class we're looking for a hint for
+	 * @param string $keyName The name of the array key we'd like a hint on
+	 * @return class-string<JsonCodecable>|'stdClass'|null
+	 */
+	public function jsonClassHintFor( string $className, string $keyName ): ?string;
 }

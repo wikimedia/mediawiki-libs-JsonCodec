@@ -72,12 +72,21 @@ class JsonCodec {
 	 * While serializing the $value JsonCodec delegates to the appropriate
 	 * JsonClassCodecs of any classes which implement JsonCodecable.
 	 *
+	 * If a $classHint is provided and matches the type of the value,
+	 * then type information will not be included in the generated JSON;
+	 * otherwise an appropriate class name will be added to the JSON to
+	 * guide deserialization.
+	 *
 	 * @param mixed|null $value
+	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 *   the type of the encoded object.  If this is provided and matches
+	 *   the type of $value, then explicit type information will be omitted
+	 *   from the generated JSON, which saves some space.
 	 * @return string
 	 */
-	public function toJsonString( $value ): string {
+	public function toJsonString( $value, ?string $classHint = null ): string {
 		return json_encode(
-			$this->toJsonArray( $value ),
+			$this->toJsonArray( $value, $classHint ),
 			JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE |
 			JSON_HEX_TAG | JSON_HEX_AMP
 		);
@@ -88,12 +97,20 @@ class JsonCodec {
 	 * While deserializing the $json JsonCodec delegates to the appropriate
 	 * JsonClassCodecs of any classes which implement JsonCodecable.
 	 *
+	 * For objects encoded using implicit class information, a "class hint"
+	 * can be provided to guide deserialization; this is unnecessary for
+	 * objects serialized with explicit classes.
+	 *
 	 * @param string $json A JSON-encoded string
+	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 *   the type of the encoded object.  In the absence of explicit
+	 *   type information in the JSON, this will be used as the type of
+	 *   the created object.
 	 * @return mixed|null
 	 */
-	public function newFromJsonString( $json ) {
+	public function newFromJsonString( $json, ?string $classHint = null ) {
 		return $this->newFromJsonArray(
-			json_decode( $json, true )
+			json_decode( $json, true ), $classHint
 		);
 	}
 
@@ -103,14 +120,17 @@ class JsonCodec {
 	 * Reusing this JsonCodec object will also reuse this cache, which
 	 * could improve performance somewhat.
 	 *
-	 * @param class-string<JsonCodecable> $className
+	 * @param class-string<JsonCodecable>|class-string<stdClass> $className
 	 * @return JsonClassCodec
 	 */
 	protected function codecFor( string $className ): JsonClassCodec {
 		$codec = $this->codecs[$className] ?? null;
 		if ( !$codec ) {
-			$codec = $this->codecs[$className] =
-				   $className::jsonClassCodec( $this->serviceContainer );
+			$codec = $this->codecs[$className] = (
+				$className === stdClass::class ?
+				JsonStdClassCodec::getInstance() :
+				$className::jsonClassCodec( $this->serviceContainer )
+			);
 		}
 		return $codec;
 	}
@@ -125,22 +145,30 @@ class JsonCodec {
 	 * appropriate JsonClassCodecs of any classes which implement
 	 * JsonCodecable.
 	 *
+	 * If a $classHint is provided and matches the type of the value,
+	 * then type information will not be included in the generated JSON;
+	 * otherwise an appropriate class name will be added to the JSON to
+	 * guide deserialization.
+	 *
 	 * @param mixed|null $value
+	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 *   the type of the encoded object.  If this is provided and matches
+	 *   the type of $value, then explicit type information will be omitted
+	 *   from the generated JSON, which saves some space.
 	 * @return mixed|null
 	 */
-	public function toJsonArray( $value ) {
+	public function toJsonArray( $value, ?string $classHint = null ) {
 		$is_complex = false;
 		$className = 'array';
-		if ( $value instanceof JsonCodecable ) {
-			$className = get_class( $value );
-			$value = $this->codecFor( $className )->toJsonArray( $value );
-			$is_complex = true;
-		} elseif (
-			is_object( $value ) &&
-			get_class( $value ) === stdClass::class
+		$codec = null;
+		if (
+			$value instanceof JsonCodecable || (
+				is_object( $value ) && get_class( $value ) === stdClass::class
+			)
 		) {
-			$value = (array)$value;
-			$className = stdClass::class;
+			$className = get_class( $value );
+			$codec = $this->codecFor( $className );
+			$value = $codec->toJsonArray( $value );
 			$is_complex = true;
 		} elseif (
 			is_array( $value ) &&
@@ -150,10 +178,17 @@ class JsonCodec {
 		}
 		if ( is_array( $value ) ) {
 			// Recursively convert array values to serializable form
-			foreach ( $value as $unused => &$v ) {
+			foreach ( $value as $key => &$v ) {
 				if ( is_object( $v ) || is_array( $v ) ) {
-					$v = $this->toJsonArray( $v );
-					if ( array_key_exists( self::TYPE_ANNOTATION, $v ) ) {
+					// phan can't tell that $codec is null when $className is 'array'
+					$propClassHint = $codec === null ? null :
+						// @phan-suppress-next-line PhanUndeclaredClassReference
+						$codec->jsonClassHintFor( $className, $key );
+					$v = $this->toJsonArray( $v, $propClassHint );
+					if (
+						array_key_exists( self::TYPE_ANNOTATION, $v ) ||
+						$propClassHint !== null
+					) {
 						// an array which contains complex components is
 						// itself complex.
 						$is_complex = true;
@@ -164,8 +199,14 @@ class JsonCodec {
 			// any fields with the same names as our markers.
 			if ( $is_complex ) {
 				if ( array_key_exists( self::TYPE_ANNOTATION, $value ) ) {
-					$value[self::TYPE_ANNOTATION] = [ $className, $value[self::TYPE_ANNOTATION] ];
-				} else {
+					if ( $classHint !== $className ) {
+						$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION], $className ];
+					} else {
+						// Omit $className since it matches the $classHint
+						$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION] ];
+					}
+				} elseif ( $classHint !== $className ) {
+					// Only include the type annotation if it doesn't match the hint
 					$value[self::TYPE_ANNOTATION] = $className;
 				}
 			}
@@ -183,42 +224,67 @@ class JsonCodec {
 	 * delegates to the appropriate JsonClassCodecs of any classes which
 	 * implement JsonCodecable.
 	 *
+	 * For objects encoded using implicit class information, a "class hint"
+	 * can be provided to guide deserialization; this is unnecessary for
+	 * objects serialized with explicit classes.
+	 *
 	 * @param mixed|null $json
+	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 *   the type of the encoded object.  In the absence of explicit
+	 *   type information in the JSON, this will be used as the type of
+	 *   the created object.
 	 * @return mixed|null
 	 */
-	public function newFromJsonArray( $json ) {
+	public function newFromJsonArray( $json, ?string $classHint = null ) {
 		if ( $json instanceof stdClass ) {
 			// We *shouldn't* be given an object... but we might.
 			$json = (array)$json;
 		}
 		// Is this an array containing a complex value?
-		if ( is_array( $json ) && array_key_exists( self::TYPE_ANNOTATION, $json ) ) {
+		if (
+			is_array( $json ) && (
+				array_key_exists( self::TYPE_ANNOTATION, $json ) ||
+				$classHint !== null
+			)
+		) {
 			// Read out our metadata
-			$className = $json[self::TYPE_ANNOTATION];
+			$className = $json[self::TYPE_ANNOTATION] ?? $classHint;
 			// Remove our marker and restore the previous state of the
 			// json array (restoring a pre-existing field if needed)
 			if ( is_array( $className ) ) {
-				$json[self::TYPE_ANNOTATION] = $className[1];
-				$className = $className[0];
+				$json[self::TYPE_ANNOTATION] = $className[0];
+				$className = $className[1] ?? $classHint;
 			} else {
 				unset( $json[self::TYPE_ANNOTATION] );
+			}
+			// Create appropriate codec
+			$codec = null;
+			if ( $className !== 'array' ) {
+				$codec = $this->codecFor( $className );
 			}
 			// Recursively unserialize the array contents.
 			$unserialized = [];
 			foreach ( $json as $key => $value ) {
-				if ( is_array( $value ) && array_key_exists( self::TYPE_ANNOTATION, $value ) ) {
-					$unserialized[$key] = $this->newFromJsonArray( $value );
+				$propClassHint = $codec === null ? null :
+					// phan can't tell that $codec is null when $className is 'array'
+					// @phan-suppress-next-line PhanUndeclaredClassReference
+					$codec->jsonClassHintFor( $className, $key );
+				if (
+					is_array( $value ) && (
+						array_key_exists( self::TYPE_ANNOTATION, $value ) ||
+						$propClassHint !== null
+					)
+				) {
+					$unserialized[$key] = $this->newFromJsonArray( $value, $propClassHint );
 				} else {
 					$unserialized[$key] = $value;
 				}
 			}
 			// Use a JsonCodec to create the object instance if appropriate.
-			if ( $className === stdClass::class ) {
-				$json = (object)$unserialized;
-			} elseif ( $className !== 'array' ) {
-				$json = $this->codecFor( $className )->newFromJsonArray( $className, $unserialized );
-			} else {
+			if ( $className === 'array' ) {
 				$json = $unserialized;
+			} else {
+				$json = $codec->newFromJsonArray( $className, $unserialized );
 			}
 		}
 		return $json;

@@ -52,4 +52,10 @@ class ManagedObjectFactory implements JsonClassCodec {
 		// @phan-suppress-next-line PhanTypeMismatchReturn template limitations
 		return $this->lookup( $json['name'] );
 	}
+
+	/** @inheritDoc */
+	public function jsonClassHintFor( string $className, string $key ): ?string {
+		// no hints
+		return null;
+	}
 }

@@ -24,11 +24,12 @@ declare( strict_types=1 );
 namespace Wikimedia\JsonCodec;
 
 /**
- * This is a simple class codec which proxies to methods on the object for
- * serialization and a static method on the class for deserialization.
- * It is intended for use as a singleton helper to JsonCodecableTrait.
+ * This is a simple class codec used for `stdClass` objects.
+ * @internal
  */
-class JsonStaticClassCodec implements JsonClassCodec {
+// This class should @implements JsonClassCodec<stdClass> but phan's incomplete
+// support for generics doesn't allow that yet.
+class JsonStdClassCodec implements JsonClassCodec {
 
 	/**
 	 * Returns a JSON array representing the contents of the given object, that
@@ -41,9 +42,7 @@ class JsonStaticClassCodec implements JsonClassCodec {
 	 * @see JsonCodecableTrait
 	 */
 	public function toJsonArray( $obj ): array {
-		// Proxy to a method on the object itself.
-		// @see JsonCodecableTrait
-		return $obj->toJsonArray();
+		return (array)$obj;
 	}
 
 	/**
@@ -54,12 +53,10 @@ class JsonStaticClassCodec implements JsonClassCodec {
 	 * @return T
 	 * @inheritDoc
 	 * @phan-template T
-	 * @see JsonCodecableTrait
 	 */
 	public function newFromJsonArray( string $className, array $json ) {
-		// Proxy to a static method on the class.
-		// @see JsonCodecableTrait
-		return $className::newFromJsonArray( $json );
+		// @phan-suppress-next-line PhanTypeMismatchReturn inadequate generics
+		return (object)$json;
 	}
 
 	/**
@@ -73,19 +70,17 @@ class JsonStaticClassCodec implements JsonClassCodec {
 	 * @return class-string<JsonCodecable>|'stdClass'|null
 	 */
 	public function jsonClassHintFor( string $className, string $keyName ): ?string {
-		// Proxy to a static method on the class.
-		// @see JsonCodecableTrait
-		return $className::jsonClassHintFor( $keyName );
+		return null;
 	}
 
 	/**
-	 * Return a singleton instance of this class codec.
-	 * @return JsonStaticClassCodec a singleton instance of this class
+	 * Return a singleton instance of this stdClass codec.
+	 * @return JsonStdClassCodec a singleton instance of this class
 	 */
-	public static function getInstance(): JsonStaticClassCodec {
+	public static function getInstance(): JsonStdClassCodec {
 		static $instance = null;
 		if ( $instance == null ) {
-			$instance = new JsonStaticClassCodec();
+			$instance = new JsonStdClassCodec();
 		}
 		return $instance;
 	}

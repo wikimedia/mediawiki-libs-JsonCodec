@@ -62,5 +62,22 @@ trait JsonCodecableTrait {
 	 * @param array $json
 	 * @return stdClass
 	 */
-	abstract public static function newFromJsonArray( array $json ): stdClass;
+	abstract public static function newFromJsonArray( array $json );
+
+	/**
+	 * Return an optional type hint for the given array key in the result of
+	 * ::toJsonArray() / input to ::newFromJsonArray.  If a class name is
+	 * returned here and it matches the runtime type of the value of that
+	 * array key, then type information will be omitted from the generated
+	 * JSON which can save space.
+	 *
+	 * Default implementation of ::jsonClassHintFor() provides no hints.
+	 * Implementer can override.
+	 *
+	 * @param string $keyName
+	 * @return class-string<JsonCodecable>|'stdClass'|null
+	 */
+	public static function jsonClassHintFor( string $keyName ): ?string {
+		return null;
+	}
 }

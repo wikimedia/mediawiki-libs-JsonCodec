@@ -18,7 +18,6 @@ declare( strict_types=1 );
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @file
- * @ingroup Json
  */
 
 namespace Wikimedia\JsonCodec;

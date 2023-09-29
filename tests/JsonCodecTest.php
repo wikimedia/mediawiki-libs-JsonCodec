@@ -163,6 +163,10 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				new SampleContainerObject( new SampleObject( 'suppress _type_' ) ), SampleContainerObject::class,
 				'{"contents":{"property":"suppress _type_"},"test":[]}'
 			],
+			'tagged value correct hints' => [
+				new TaggedValue( 'm', $factory->lookup( 'a' ), new SampleObject( 'suppress _type_' ) ), TaggedValue::class,
+				'{"tag":"m","value":{"name":"a"},"nested":{"value":{"property":"suppress _type_"}}}'
+			],
 		];
 	}
 

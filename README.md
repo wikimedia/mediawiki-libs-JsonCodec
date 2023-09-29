@@ -168,6 +168,19 @@ break serialization/deserialization.
 A full example can be found in
 [`tests/SampleContainerObject.php`](./tests/SampleContainerObject.php).
 
+In some cases, `::jsonClassHintFor()` may be inadequate to describe
+the implicit typing of the JSON; for example tagged union values or
+implicitly-typed objects nested inside arrays.  For those use cases
+a `JsonCodecInterface` parameter is provided to the
+`::jsonClassCodec()` method.  This allows the
+serialization/deserialization code to manually encode/decode portions of
+its JSON array using an implicit type.  More details can be found in
+the interface documentation for
+[`src/JsonCodecInterface.php`](./src/JsonCodecInterface.php) and
+a full example can be found in
+[`tests/TaggedValue.php`](./tests/TaggedValue.php).
+
+
 
 Running tests
 -------------

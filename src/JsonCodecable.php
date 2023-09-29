@@ -37,9 +37,17 @@ interface JsonCodecable {
 	/**
 	 * Create a JsonClassCodec which can serialize/deserialize instances of
 	 * this class.
+	 * @param JsonCodecInterface $codec A codec which can be used to handle
+	 *  certain cases of implicit typing in the generated JSON; see
+	 *  `JsonCodecInterface` for details.  It should not be necessary for
+	 *  most class codecs to use this, as recursive
+	 *  serialization/deserialization is handled by default.
 	 * @param ContainerInterface $serviceContainer A service container
 	 * @return JsonClassCodec A JsonClassCodec appropriate for objects of
 	 *  this type.
 	 */
-	public static function jsonClassCodec( ContainerInterface $serviceContainer ): JsonClassCodec;
+	public static function jsonClassCodec(
+		JsonCodecInterface $codec,
+		ContainerInterface $serviceContainer
+	): JsonClassCodec;
 }

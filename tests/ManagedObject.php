@@ -4,6 +4,7 @@ namespace Wikimedia\JsonCodec\Tests;
 use Psr\Container\ContainerInterface;
 use Wikimedia\JsonCodec\JsonClassCodec;
 use Wikimedia\JsonCodec\JsonCodecable;
+use Wikimedia\JsonCodec\JsonCodecInterface;
 
 /**
  * Managed object which uses a factory in a service.
@@ -32,7 +33,9 @@ class ManagedObject implements JsonCodecable {
 	// to the 'ManagedObjectFactory' service.
 
 	/** @inheritDoc */
-	public static function jsonClassCodec( ContainerInterface $serviceContainer ): JsonClassCodec {
+	public static function jsonClassCodec(
+		JsonCodecInterface $codec, ContainerInterface $serviceContainer
+	): JsonClassCodec {
 		return $serviceContainer->get( 'ManagedObjectFactory' );
 	}
 }

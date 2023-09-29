@@ -31,7 +31,7 @@ use stdClass;
 /**
  * Helper class to serialize/unserialize things to/from JSON.
  */
-class JsonCodec {
+class JsonCodec implements JsonCodecInterface {
 	/** @var ContainerInterface Service container */
 	protected ContainerInterface $serviceContainer;
 
@@ -130,7 +130,7 @@ class JsonCodec {
 			$codec = $this->codecs[$className] = (
 				$className === stdClass::class ?
 				JsonStdClassCodec::getInstance() :
-				$className::jsonClassCodec( $this->serviceContainer )
+				$className::jsonClassCodec( $this, $this->serviceContainer )
 			);
 		}
 		return $codec;

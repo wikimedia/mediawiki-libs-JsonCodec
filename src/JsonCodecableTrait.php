@@ -82,7 +82,7 @@ trait JsonCodecableTrait {
 	 * Implementer can override.
 	 *
 	 * @param string $keyName
-	 * @return class-string<JsonCodecable>|'stdClass'|null
+	 * @return ?class-string
 	 */
 	public static function jsonClassHintFor( string $keyName ): ?string {
 		return null;

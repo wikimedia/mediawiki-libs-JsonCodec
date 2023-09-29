@@ -99,6 +99,44 @@ $request->jsonResponse( [ 'error': false, 'embedded': $array_result ] );
 $someComplexValue = $codec->fromJsonArray( $data['embedded'] );
 ```
 
+### Handling "non-codecable" objects
+
+In some cases you want to be able to serialize/deserialize third-party
+objects which don't implement JsonCodecable.  This can be done using
+the JsonCodec method `::addCodecFor()` which allows the creator of
+the `JsonCodec` instance to specify a `JsonClassCodec` to use for
+an arbitrary class name.  For example:
+```php
+use Wikimedia\JsonCodec\JsonCodec;
+
+$codec = new JsonCodec( ...optional services object... );
+$codec->addCodecFor( \DocumentFragment::class, new MyDOMSerializer() );
+
+$string_result = $codec->toJsonString( $someComplexValue );
+```
+This is done by default to provide a serializer for `stdClass` objects.
+
+If adding class codecs one-by-one is not sufficient, for example if
+you wish to add support for all objects implementing some
+alternate serialization interface, you can subclass `JsonCodec` and
+override the protected `JsonCodec::codecFor()` method to return
+an appropriate codec.  Your code should look like this:
+```php
+class MyCustomJsonCodec extends JsonCodec {
+   protected function codecFor( string $className ): ?JsonClassCodec {
+      $codec = parent::codecFor( $className );
+      if ($codec === null && is_a($className, MyOwnSerializationType::class, true)) {
+         $codec = new MyCustomSerializer();
+         // Cache this for future use
+         $this->addCodecFor( $className, $codec );
+      }
+      return $codec;
+  }
+}
+```
+A full example can be found in
+[`tests/AlternateCodec.php`](./tests/AlternateCodec.php).
+
 ### More concise output
 
 By default JsonCodec embeds the class name of the appropriate object

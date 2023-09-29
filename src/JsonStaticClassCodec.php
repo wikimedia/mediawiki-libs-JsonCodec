@@ -70,7 +70,7 @@ class JsonStaticClassCodec implements JsonClassCodec {
 	 * JSON which can save space.
 	 * @param class-string<T> $className
 	 * @param string $keyName
-	 * @return class-string<JsonCodecable>|'stdClass'|null
+	 * @return ?class-string
 	 */
 	public function jsonClassHintFor( string $className, string $keyName ): ?string {
 		// Proxy to a static method on the class.

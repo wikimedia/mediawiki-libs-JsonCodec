@@ -75,7 +75,7 @@ interface JsonCodecInterface {
 	 * guide deserialization.
 	 *
 	 * @param mixed|null $value
-	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 * @param ?class-string $classHint An optional hint to
 	 *   the type of the encoded object.  If this is provided and matches
 	 *   the type of $value, then explicit type information will be omitted
 	 *   from the generated JSON, which saves some space.
@@ -94,7 +94,7 @@ interface JsonCodecInterface {
 	 * objects serialized with explicit classes.
 	 *
 	 * @param mixed|null $json
-	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 * @param ?class-string $classHint An optional hint to
 	 *   the type of the encoded object.  In the absence of explicit
 	 *   type information in the JSON, this will be used as the type of
 	 *   the created object.

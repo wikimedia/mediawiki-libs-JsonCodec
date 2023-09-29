@@ -66,6 +66,9 @@ class JsonCodec implements JsonCodecInterface {
 					return false;
 				}
 			};
+		$this->addCodecFor(
+			stdClass::class, JsonStdClassCodec::getInstance()
+		);
 	}
 
 	/**
@@ -79,7 +82,7 @@ class JsonCodec implements JsonCodecInterface {
 	 * guide deserialization.
 	 *
 	 * @param mixed|null $value
-	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 * @param ?class-string $classHint An optional hint to
 	 *   the type of the encoded object.  If this is provided and matches
 	 *   the type of $value, then explicit type information will be omitted
 	 *   from the generated JSON, which saves some space.
@@ -103,7 +106,7 @@ class JsonCodec implements JsonCodecInterface {
 	 * objects serialized with explicit classes.
 	 *
 	 * @param string $json A JSON-encoded string
-	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 * @param ?class-string $classHint An optional hint to
 	 *   the type of the encoded object.  In the absence of explicit
 	 *   type information in the JSON, this will be used as the type of
 	 *   the created object.
@@ -121,19 +124,37 @@ class JsonCodec implements JsonCodecInterface {
 	 * Reusing this JsonCodec object will also reuse this cache, which
 	 * could improve performance somewhat.
 	 *
-	 * @param class-string<JsonCodecable>|class-string<stdClass> $className
-	 * @return JsonClassCodec
+	 * @param class-string $className
+	 * @return ?JsonClassCodec a codec for the class, or null if the class is
+	 *   not serializable.
 	 */
-	protected function codecFor( string $className ): JsonClassCodec {
+	protected function codecFor( string $className ): ?JsonClassCodec {
 		$codec = $this->codecs[$className] ?? null;
 		if ( !$codec ) {
-			$codec = $this->codecs[$className] = (
-				$className === stdClass::class ?
-				JsonStdClassCodec::getInstance() :
-				$className::jsonClassCodec( $this, $this->serviceContainer )
-			);
+			if ( !is_a( $className, JsonCodecable::class, true ) ) {
+				return null;
+			}
+			$codec = $this->codecs[$className] =
+				$className::jsonClassCodec( $this, $this->serviceContainer );
 		}
 		return $codec;
+	}
+
+	/**
+	 * Allow the use of a customized encoding for the given class; the given
+	 * className need not be a JsonCodecable and if it *does* correspond to
+	 * a JsonCodecable it will override the class codec specified by the
+	 * JsonCodecable.
+	 * @param class-string $className
+	 * @param JsonClassCodec $codec A codec to use for $className
+	 */
+	public function addCodecFor( string $className, JsonClassCodec $codec ): void {
+		if ( $this->codecs[$className] ?? false ) {
+			throw new InvalidArgumentException(
+				"Codec already present for $className"
+			);
+		}
+		$this->codecs[$className] = $codec;
 	}
 
 	/**
@@ -152,7 +173,7 @@ class JsonCodec implements JsonCodecInterface {
 	 * guide deserialization.
 	 *
 	 * @param mixed|null $value
-	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 * @param ?class-string $classHint An optional hint to
 	 *   the type of the encoded object.  If this is provided and matches
 	 *   the type of $value, then explicit type information will be omitted
 	 *   from the generated JSON, which saves some space.
@@ -162,15 +183,13 @@ class JsonCodec implements JsonCodecInterface {
 		$is_complex = false;
 		$className = 'array';
 		$codec = null;
-		if (
-			$value instanceof JsonCodecable || (
-				is_object( $value ) && get_class( $value ) === stdClass::class
-			)
-		) {
+		if ( is_object( $value ) ) {
 			$className = get_class( $value );
 			$codec = $this->codecFor( $className );
-			$value = $codec->toJsonArray( $value );
-			$is_complex = true;
+			if ( $codec !== null ) {
+				$value = $codec->toJsonArray( $value );
+				$is_complex = true;
+			}
 		} elseif (
 			is_array( $value ) &&
 			array_key_exists( self::TYPE_ANNOTATION, $value )
@@ -230,7 +249,7 @@ class JsonCodec implements JsonCodecInterface {
 	 * objects serialized with explicit classes.
 	 *
 	 * @param mixed|null $json
-	 * @param ?class-string<JsonCodecable> $classHint An optional hint to
+	 * @param ?class-string $classHint An optional hint to
 	 *   the type of the encoded object.  In the absence of explicit
 	 *   type information in the JSON, this will be used as the type of
 	 *   the created object.
@@ -262,6 +281,11 @@ class JsonCodec implements JsonCodecInterface {
 			$codec = null;
 			if ( $className !== 'array' ) {
 				$codec = $this->codecFor( $className );
+				if ( $codec === null ) {
+					throw new InvalidArgumentException(
+						"Unable to deserialize JSON for $className"
+					);
+				}
 			}
 			// Recursively unserialize the array contents.
 			$unserialized = [];

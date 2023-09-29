@@ -32,29 +32,32 @@
 		"psr/container": "1.1.2"
 	},
 	"require-dev": {
-		"mediawiki/mediawiki-codesniffer": "39.0.0",
-		"mediawiki/mediawiki-phan-config": "0.12.0",
+		"mediawiki/mediawiki-codesniffer": "41.0.0",
+		"mediawiki/mediawiki-phan-config": "0.12.1",
 		"mediawiki/minus-x": "1.1.1",
 		"ockcyp/covers-validator": "1.6.0",
 		"php-parallel-lint/php-console-highlighter": "1.0.0",
 		"php-parallel-lint/php-parallel-lint": "1.3.2",
-		"phpunit/phpunit": "^9.5",
-		"wikimedia/assert": "^0.5.1"
+		"phpunit/phpunit": "^9.5.28",
+		"wikimedia/assert": "^0.5.1",
+		"wikimedia/update-history": "1.0.1"
 	},
 	"scripts": {
 		"test": [
 			"parallel-lint . --exclude vendor",
 			"phpunit",
 			"covers-validator",
-			"phpcs -sp",
+			"@phpcs",
 			"@phan",
 			"minus-x check ."
 		],
 		"phan": "phan --allow-polyfill-parser",
 		"cover": "phpunit --coverage-html coverage",
 		"fix": [
-			"phpcbf",
-			"minus-x fix ."
-		]
+			"minus-x fix .",
+			"phpcbf"
+		],
+		"phpcs": "phpcs -sp",
+		"update-history": "update-history patch"
 	}
 }

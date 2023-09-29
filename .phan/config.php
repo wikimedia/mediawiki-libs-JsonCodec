@@ -1,9 +1,8 @@
 <?php
 
-$cfg = require __DIR__ . '/../vendor/mediawiki/mediawiki-phan-config/src/config.php';
+$cfg = require __DIR__ . '/../vendor/mediawiki/mediawiki-phan-config/src/config-library.php';
 
-$cfg['directory_list'] = [ 'src', 'vendor', 'tests' ];
+$cfg['directory_list'][] = 'tests';
 $cfg['suppress_issue_types'] = [];
-$cfg['exclude_analysis_directory_list'][] = 'vendor';
 
 return $cfg;

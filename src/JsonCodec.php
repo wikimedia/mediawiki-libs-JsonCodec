@@ -183,6 +183,12 @@ class JsonCodec implements JsonCodecInterface {
 		$is_complex = false;
 		$className = 'array';
 		$codec = null;
+		// Adjust class hint for arrays.
+		$arrayClassHint = null;
+		if ( $classHint !== null && str_ends_with( $classHint, '[]' ) ) {
+			$arrayClassHint = substr( $classHint, 0, -2 );
+			$classHint = 'array';
+		}
 		if ( is_object( $value ) ) {
 			$className = get_class( $value );
 			$codec = $this->codecFor( $className );
@@ -200,8 +206,8 @@ class JsonCodec implements JsonCodecInterface {
 			// Recursively convert array values to serializable form
 			foreach ( $value as $key => &$v ) {
 				if ( is_object( $v ) || is_array( $v ) ) {
-					// phan can't tell that $codec is null when $className is 'array'
-					$propClassHint = $codec === null ? null :
+					$propClassHint = $codec === null ? $arrayClassHint :
+						// phan can't tell that $codec is null when $className is 'array'
 						// @phan-suppress-next-line PhanUndeclaredClassReference
 						$codec->jsonClassHintFor( $className, $key );
 					$v = $this->toJsonArray( $v, $propClassHint );
@@ -260,6 +266,12 @@ class JsonCodec implements JsonCodecInterface {
 			// We *shouldn't* be given an object... but we might.
 			$json = (array)$json;
 		}
+		// Adjust class hint for arrays.
+		$arrayClassHint = null;
+		if ( $classHint !== null && str_ends_with( $classHint, '[]' ) ) {
+			$arrayClassHint = substr( $classHint, 0, -2 );
+			$classHint = 'array';
+		}
 		// Is this an array containing a complex value?
 		if (
 			is_array( $json ) && (
@@ -290,7 +302,7 @@ class JsonCodec implements JsonCodecInterface {
 			// Recursively unserialize the array contents.
 			$unserialized = [];
 			foreach ( $json as $key => $value ) {
-				$propClassHint = $codec === null ? null :
+				$propClassHint = $codec === null ? $arrayClassHint :
 					// phan can't tell that $codec is null when $className is 'array'
 					// @phan-suppress-next-line PhanUndeclaredClassReference
 					$codec->jsonClassHintFor( $className, $key );

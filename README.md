@@ -203,19 +203,22 @@ other than a `SampleObject` into the `SampleContainerObject` the type
 of that value would be embedded into the JSON output, but it would not
 break serialization/deserialization.
 
+The class hint you provide can be suffixed with `[]` to indicate a
+homogenous list or array of the given type.
+
 A full example can be found in
 [`tests/SampleContainerObject.php`](./tests/SampleContainerObject.php).
 
 In some cases, `::jsonClassHintFor()` may be inadequate to describe
 the implicit typing of the JSON; for example tagged union values or
-implicitly-typed objects nested inside arrays.  For those use cases
-a `JsonCodecInterface` parameter is provided to the
-`::jsonClassCodec()` method.  This allows the
-serialization/deserialization code to manually encode/decode portions of
-its JSON array using an implicit type.  More details can be found in
-the interface documentation for
-[`src/JsonCodecInterface.php`](./src/JsonCodecInterface.php) and
-a full example can be found in
+implicitly-typed objects nested deeply or inside non-homogeneous
+arrays.  For those use cases a `JsonCodecInterface` parameter is
+provided to the `::jsonClassCodec()` method.  This allows the
+serialization/deserialization code to manually encode/decode portions
+of its JSON array using an implicit type.  More details can be found
+in the interface documentation for
+[`src/JsonCodecInterface.php`](./src/JsonCodecInterface.php) and a
+full example can be found in
 [`tests/TaggedValue.php`](./tests/TaggedValue.php).
 
 

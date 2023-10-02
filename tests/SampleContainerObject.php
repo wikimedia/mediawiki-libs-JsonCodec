@@ -32,6 +32,8 @@ class SampleContainerObject implements JsonCodecable {
 			'contents' => $this->contents,
 			// Note that json array keys need not correspond to property names
 			'test' => (object)[],
+			// Test "array of" hints as well as regular hints
+			'array' => [ $this->contents ],
 		];
 	}
 
@@ -42,6 +44,10 @@ class SampleContainerObject implements JsonCodecable {
 			count( get_object_vars( $json['test'] ) ) === 0,
 			"Ensure that the 'test' key is restored correctly"
 		);
+		Assert::invariant(
+			is_array( $json['array'] ) && count( $json['array'] ) === 1,
+			"Ensure that the 'array' key is restored correctly"
+		);
 		return new SampleContainerObject( $json['contents'] );
 	}
 
@@ -50,6 +56,10 @@ class SampleContainerObject implements JsonCodecable {
 		if ( $keyName === 'contents' ) {
 			// Hint that the contained value is a SampleObject. It might be!
 			return SampleObject::class;
+		} elseif ( $keyName === 'array' ) {
+			// Hint that the contained value is a *array of* SampleObject.
+			// It might be!
+			return SampleObject::class . '[]';
 		} elseif ( $keyName === 'test' ) {
 			// This hint will always be correct; note that this is a key
 			// name not a property of SampleContainerObject

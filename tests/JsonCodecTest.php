@@ -128,44 +128,45 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 
 			'string container object no hint' => [
 				new SampleContainerObject( 'string contents' ), null,
-				'{"contents":"string contents","test":[],"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleContainerObject"}'
+				'{"contents":"string contents","test":[],"array":["string contents"],"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleContainerObject"}'
 			],
 			'string container object wrong hint' => [
 				new SampleContainerObject( 'string contents' ), SampleObject::class,
-				'{"contents":"string contents","test":[],"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleContainerObject"}'
+				'{"contents":"string contents","test":[],"array":["string contents"],"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleContainerObject"}'
 			],
 			'string container object right hint' => [
 				new SampleContainerObject( 'string contents' ), SampleContainerObject::class,
-				'{"contents":"string contents","test":[]}'
+				'{"contents":"string contents","test":[],"array":["string contents"]}'
 			],
 
 			'stdClass container object no hint' => [
 				new SampleContainerObject( (object)[ 'a' => 1 ] ), null,
-				'{"contents":{"a":1,"_type_":"stdClass"},"test":[],"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleContainerObject"}'
+				'{"contents":{"a":1,"_type_":"stdClass"},"test":[],"array":[{"a":1,"_type_":"stdClass"}],"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleContainerObject"}'
 			],
 			'stdClass container object wrong hint' => [
 				new SampleContainerObject( (object)[ 'a' => 1 ] ), SampleObject::class,
-				'{"contents":{"a":1,"_type_":"stdClass"},"test":[],"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleContainerObject"}'
+				'{"contents":{"a":1,"_type_":"stdClass"},"test":[],"array":[{"a":1,"_type_":"stdClass"}],"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleContainerObject"}'
 			],
 			'stdClass container object right hint' => [
 				new SampleContainerObject( (object)[ 'a' => 1 ] ), SampleContainerObject::class,
-				'{"contents":{"a":1,"_type_":"stdClass"},"test":[]}'
+				'{"contents":{"a":1,"_type_":"stdClass"},"test":[],"array":[{"a":1,"_type_":"stdClass"}]}'
 			],
 
 			'managed object container right top level hint' =>
 			[
 				new SampleContainerObject( $factory->lookup( 'a' ) ), SampleContainerObject::class,
-				'{"contents":{"name":"a","_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\ManagedObject"},"test":[]}'
+				'{"contents":{"name":"a","_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\ManagedObject"},"test":[],"array":[{"name":"a","_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\ManagedObject"}]}'
 			],
 
 			// Very succinct output when all type hints match up
 			'sample object container object correct hints' => [
 				new SampleContainerObject( new SampleObject( 'suppress _type_' ) ), SampleContainerObject::class,
-				'{"contents":{"property":"suppress _type_"},"test":[]}'
+				'{"contents":{"property":"suppress _type_"},"test":[],"array":[{"property":"suppress _type_"}]}'
 			],
+
 			'tagged value correct hints' => [
 				new TaggedValue( 'm', $factory->lookup( 'a' ), new SampleObject( 'suppress _type_' ) ), TaggedValue::class,
-				'{"tag":"m","value":{"name":"a"},"nested":{"value":{"property":"suppress _type_"}}}'
+				'{"tag":"m","value":{"name":"a"},"nested":{"value":{"property":"suppress _type_"},"some other value":{"x":"y"}}}'
 			],
 		];
 	}

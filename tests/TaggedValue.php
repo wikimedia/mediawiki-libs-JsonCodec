@@ -76,10 +76,14 @@ class TaggedValue implements JsonCodecable {
 						$obj->taggedValue, TaggedValue::tagToType( $obj->tag )
 					),
 					// Using the JsonCodecInterface to provide an appropriate
-					// implicit type hint for a value nested in an array
-					'nested' => [ 'value' => $this->codec->toJsonArray(
-						$obj->nestedValue, SampleObject::class
-					) ],
+					// implicit type hint for a value contained in a nested
+					// and non-homogeneous structure
+					'nested' => [
+						'value' => $this->codec->toJsonArray(
+							$obj->nestedValue, SampleObject::class
+						),
+						'some other value' => [ 'x' => 'y' ],
+					],
 				];
 			}
 
@@ -90,7 +94,8 @@ class TaggedValue implements JsonCodecable {
 				$taggedValue = $this->codec->newFromJsonArray(
 					$json['value'], TaggedValue::tagToType( $tag )
 				);
-				// Deserializing an implicitly-typed value nested in an array
+				// Deserializing an implicitly-typed value nested in a
+				// non-homogeneous array
 				$nestedValue = $this->codec->newFromJsonArray(
 					$json['nested']['value'], SampleObject::class
 				);
@@ -103,11 +108,13 @@ class TaggedValue implements JsonCodecable {
 				// Our 'class hint for' mechanism is insufficient for
 				// this use case since (a) the type of the 'value' key
 				// is not fixed, and (b) the type of the nested value
-				// is not a direct top-level key.  (Although We could
-				// in theory work around (b) by inventing a new
-				// pseudo-type for the 'nested' key, which would have a
+				// is not a direct top-level key or a homogeneous array.
+				//
+				// We could in theory work around (b) by inventing a new
+				// fake class-string for the 'nested' key, which would have a
 				// matching class codec which gave a hint for the
-				// 'value' key of the pseudo-type.)
+				// 'value' key of the pseudo-type, but the manual encoding
+				// mechanism above is more general.
 				return null;
 			}
 		};

@@ -1,6 +1,8 @@
 # Release History
 
 ## x.x.x (not yet released)
+* Allow ::jsonClassHintFor() to return a class-string suffixed with
+  `[]` to indicate a list or homogeneous array of the given type.
 
 ## 2.0.0 (2023-10-02)
 * JsonCodec::addCodecFor() is added to provide the ability to

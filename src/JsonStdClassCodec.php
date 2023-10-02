@@ -59,14 +59,12 @@ class JsonStdClassCodec implements JsonClassCodec {
 	}
 
 	/**
-	 * Return an optional type hint for the given array key in the result of
-	 * ::toJsonArray() / input to ::newFromJsonArray.  If a class name is
-	 * returned here and it matches the runtime type of the value of that
-	 * array key, then type information will be omitted from the generated
-	 * JSON which can save space.
+	 * Returns null, to indicate no type hint for any properties in the
+	 * `stdClass` value being encoded.
+	 *
 	 * @param class-string<T> $className
 	 * @param string $keyName
-	 * @return class-string<JsonCodecable>|'stdClass'|null
+	 * @return null Always returns null
 	 */
 	public function jsonClassHintFor( string $className, string $keyName ): ?string {
 		return null;

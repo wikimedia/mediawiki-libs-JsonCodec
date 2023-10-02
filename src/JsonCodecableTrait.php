@@ -76,13 +76,16 @@ trait JsonCodecableTrait {
 	 * ::toJsonArray() / input to ::newFromJsonArray.  If a class name is
 	 * returned here and it matches the runtime type of the value of that
 	 * array key, then type information will be omitted from the generated
-	 * JSON which can save space.
+	 * JSON which can save space.  The class name can be suffixed with `[]`
+	 * to indicate an array or list containing objects of the given class
+	 * name.
 	 *
 	 * Default implementation of ::jsonClassHintFor() provides no hints.
 	 * Implementer can override.
 	 *
 	 * @param string $keyName
-	 * @return ?class-string
+	 * @return class-string|string|null A class string, a class string suffixed
+	 *   with `[]`, or null
 	 */
 	public static function jsonClassHintFor( string $keyName ): ?string {
 		return null;

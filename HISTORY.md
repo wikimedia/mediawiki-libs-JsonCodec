@@ -1,6 +1,6 @@
 # Release History
 
-## x.x.x (not yet released)
+## 2.1.0 (2023-10-02)
 * Allow ::jsonClassHintFor() to return a class-string suffixed with
   `[]` to indicate a list or homogeneous array of the given type.
 

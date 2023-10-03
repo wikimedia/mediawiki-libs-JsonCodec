@@ -222,7 +222,7 @@ class JsonCodec implements JsonCodecInterface {
 			}
 			// Ok, now mark the array, being careful to transfer away
 			// any fields with the same names as our markers.
-			if ( $is_complex ) {
+			if ( $is_complex || $classHint !== null ) {
 				// Even if $className === $classHint we need to record this
 				// array as "complex" (ie, requires recursion to process
 				// individual values during deserialization)
@@ -385,8 +385,14 @@ class JsonCodec implements JsonCodecInterface {
 				// case from the case where the "actual value" is an array.)
 				$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION] ];
 			}
-		} elseif ( $className !== $classHint ) {
-			// Only include the type annotation if it doesn't match the hint
+		} elseif (
+			$className !== $classHint ||
+			( array_is_list( $value ) && $className !== 'array' )
+		) {
+			// Include the type annotation if it doesn't match the hint;
+			// but also include it if necessary to break up a list. This
+			// ensures that all objects have an encoding in the '{...}' style,
+			// even if they happen to have all-numeric keys.
 			$value[self::TYPE_ANNOTATION] = $className;
 		}
 	}

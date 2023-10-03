@@ -1,5 +1,7 @@
 # Release History
 
+## x.x.x (not yet released)
+
 ## 2.2.1 (2023-10-03)
 * Allow symfony/polyfill-php81 ^1.27.0.
 

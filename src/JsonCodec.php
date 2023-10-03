@@ -197,8 +197,7 @@ class JsonCodec implements JsonCodecInterface {
 				$is_complex = true;
 			}
 		} elseif (
-			is_array( $value ) &&
-			array_key_exists( self::TYPE_ANNOTATION, $value )
+			is_array( $value ) && $this->isArrayMarked( $value )
 		) {
 			$is_complex = true;
 		}
@@ -212,7 +211,7 @@ class JsonCodec implements JsonCodecInterface {
 						$codec->jsonClassHintFor( $className, $key );
 					$v = $this->toJsonArray( $v, $propClassHint );
 					if (
-						array_key_exists( self::TYPE_ANNOTATION, $v ) ||
+						$this->isArrayMarked( $v ) ||
 						$propClassHint !== null
 					) {
 						// an array which contains complex components is
@@ -224,17 +223,13 @@ class JsonCodec implements JsonCodecInterface {
 			// Ok, now mark the array, being careful to transfer away
 			// any fields with the same names as our markers.
 			if ( $is_complex ) {
-				if ( array_key_exists( self::TYPE_ANNOTATION, $value ) ) {
-					if ( $classHint !== $className ) {
-						$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION], $className ];
-					} else {
-						// Omit $className since it matches the $classHint
-						$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION] ];
-					}
-				} elseif ( $classHint !== $className ) {
-					// Only include the type annotation if it doesn't match the hint
-					$value[self::TYPE_ANNOTATION] = $className;
-				}
+				// Even if $className === $classHint we need to record this
+				// array as "complex" (ie, requires recursion to process
+				// individual values during deserialization)
+				// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
+				$this->markArray(
+					$value, $className, $classHint
+				);
 			}
 		} elseif ( !is_scalar( $value ) && $value !== null ) {
 			throw new InvalidArgumentException(
@@ -275,20 +270,12 @@ class JsonCodec implements JsonCodecInterface {
 		// Is this an array containing a complex value?
 		if (
 			is_array( $json ) && (
-				array_key_exists( self::TYPE_ANNOTATION, $json ) ||
-				$classHint !== null
+				$this->isArrayMarked( $json ) || $classHint !== null
 			)
 		) {
 			// Read out our metadata
-			$className = $json[self::TYPE_ANNOTATION] ?? $classHint;
-			// Remove our marker and restore the previous state of the
-			// json array (restoring a pre-existing field if needed)
-			if ( is_array( $className ) ) {
-				$json[self::TYPE_ANNOTATION] = $className[0];
-				$className = $className[1] ?? $classHint;
-			} else {
-				unset( $json[self::TYPE_ANNOTATION] );
-			}
+			// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
+			$className = $this->unmarkArray( $json, $classHint );
 			// Create appropriate codec
 			$codec = null;
 			if ( $className !== 'array' ) {
@@ -308,8 +295,7 @@ class JsonCodec implements JsonCodecInterface {
 					$codec->jsonClassHintFor( $className, $key );
 				if (
 					is_array( $value ) && (
-						array_key_exists( self::TYPE_ANNOTATION, $value ) ||
-						$propClassHint !== null
+						$this->isArrayMarked( $value ) || $propClassHint !== null
 					)
 				) {
 					$unserialized[$key] = $this->newFromJsonArray( $value, $propClassHint );
@@ -326,4 +312,113 @@ class JsonCodec implements JsonCodecInterface {
 		}
 		return $json;
 	}
+
+	// Functions to mark/unmark arrays and record a class name using a
+	// single reserved field, named by self::TYPE_ANNOTATION.  A
+	// subclass can provide alternate implementations of these methods
+	// if it wants to use a different reserved field or else wishes to
+	// reserve more fields/encode certain types more compactly/flag
+	// certain types of values.  For example: a subclass could choose
+	// to discard all hints in `markArray` in order to explicitly mark
+	// all types in preparation for a format change; or all values of
+	// type DocumentFragment might get a marker flag added so they can
+	// be identified without knowledge of the class hint; or perhaps a
+	// separate schema can be used to record class names more
+	// compactly.
+
+	/**
+	 * Determine if the given value is "marked"; that is, either
+	 * represents a object type encoded using a JsonClassCodec or else
+	 * is an array which contains values (or contains arrays
+	 * containing values, etc) which are object types. The values of
+	 * unmarked arrays are not decoded, in order to speed up the
+	 * decoding process.  Arrays may also be marked even if they do
+	 * not represent object types (or an array recursively containing
+	 * them) if they contain keys that need to be escaped ("false
+	 * marks"); as such this method is called both on the raw results
+	 * of JsonClassCodec (to check for "false marks") as well as on
+	 * encoded arrays (to find "true marks").
+	 *
+	 * Arrays do not have to be marked if the decoder has a class hint.
+	 *
+	 * @param array $value An array result from `JsonClassCodec::toJsonArray()`,
+	 *  or an array result from `::markArray()`
+	 * @return bool Whether the $value is marked
+	 */
+	protected function isArrayMarked( array $value ): bool {
+		return array_key_exists( self::TYPE_ANNOTATION, $value );
+	}
+
+	/**
+	 * Record a mark in the array, reversibly.
+	 *
+	 * The mark should record the class name, if it is different from
+	 * the class hint.  The result does not need to trigger
+	 * `::isArrayMarked` if there is an accurate class hint present,
+	 * but otherwise the result should register as marked.  The
+	 * provided value may be a "complex" array (one that recursively
+	 * contains encoded object) or an array with a "false mark"; in
+	 * both cases the provided $className will be `array`.
+	 *
+	 * @param array &$value An array result from `JsonClassCodec::toJsonArray()`
+	 *   or a "complex" array
+	 * @param 'array'|class-string $className The name of the class encoded
+	 *   by the codec, or else `array` if $value is a "complex" array or a
+	 *   "false mark"
+	 * @param class-string|'array'|null $classHint The class name provided as
+	 *   a hint to the encoder, and which will be in turn provided as a hint
+	 *   to the decoder, or `null` if no hint was provided.  The class hint
+	 *   will be `array` when the array is a homogeneous list of objects.
+	 */
+	protected function markArray( array &$value, string $className, ?string $classHint ): void {
+		// We're going to use an array key, but first we have to see whether it
+		// was already present in the array we've been given, in which case
+		// we need to escape it (by hoisting into a child array).
+		if ( array_key_exists( self::TYPE_ANNOTATION, $value ) ) {
+			if ( $className !== $classHint ) {
+				$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION], $className ];
+			} else {
+				// Omit $className since it matches the $classHint, but we still
+				// need to escape the field to make it clear it was marked.
+				// (If the class hint hadn't matched, the proper class name
+				// would be here in an array, and we need to distinguish that
+				// case from the case where the "actual value" is an array.)
+				$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION] ];
+			}
+		} elseif ( $className !== $classHint ) {
+			// Only include the type annotation if it doesn't match the hint
+			$value[self::TYPE_ANNOTATION] = $className;
+		}
+	}
+
+	/**
+	 * Remove a mark from an encoded array, and return an
+	 * encoded class name if present.
+	 *
+	 * The provided array may not trigger `::isArrayMarked` is there
+	 * was a class hint provided.
+	 *
+	 * If the provided array had a "false mark" or recursively
+	 * contained objects, the returned class name should be 'array'.
+	 *
+	 * @param array &$value An encoded array
+	 * @param 'array'|class-string|null $classHint The class name provided as a hint to
+	 *  the decoder, which was previously provided as a hint to the encoder,
+	 *   or `null` if no hint was provided.
+	 * @return 'array'|class-string The class name to be used for decoding, or
+	 *  'array' if the value was a "complex" or "false mark" array.
+	 */
+	protected function unmarkArray( array &$value, ?string $classHint ): string {
+		$className = $value[self::TYPE_ANNOTATION] ?? $classHint;
+		// Remove our marker and restore the previous state of the
+		// json array (restoring a pre-existing field if needed)
+		if ( is_array( $className ) ) {
+			$value[self::TYPE_ANNOTATION] = $className[0];
+			$className = $className[1] ?? $classHint;
+		} else {
+			unset( $value[self::TYPE_ANNOTATION] );
+		}
+		return $className;
+	}
+
 }

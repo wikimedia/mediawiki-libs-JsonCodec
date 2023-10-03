@@ -208,7 +208,7 @@ class JsonCodec implements JsonCodecInterface {
 					$propClassHint = $codec === null ? $arrayClassHint :
 						// phan can't tell that $codec is null when $className is 'array'
 						// @phan-suppress-next-line PhanUndeclaredClassReference
-						$codec->jsonClassHintFor( $className, $key );
+						$codec->jsonClassHintFor( $className, (string)$key );
 					$v = $this->toJsonArray( $v, $propClassHint );
 					if (
 						$this->isArrayMarked( $v ) ||
@@ -292,7 +292,7 @@ class JsonCodec implements JsonCodecInterface {
 				$propClassHint = $codec === null ? $arrayClassHint :
 					// phan can't tell that $codec is null when $className is 'array'
 					// @phan-suppress-next-line PhanUndeclaredClassReference
-					$codec->jsonClassHintFor( $className, $key );
+					$codec->jsonClassHintFor( $className, (string)$key );
 				if (
 					is_array( $value ) && (
 						$this->isArrayMarked( $value ) || $propClassHint !== null

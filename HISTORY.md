@@ -3,6 +3,7 @@
 ## x.x.x (not yet released)
 * Add additional protected methods to JsonCodec to allow subclasses to
   further customize the encoding used.
+* Allow objects to have numeric properties.
 
 ## 2.1.0 (2023-10-02)
 * Allow ::jsonClassHintFor() to return a class-string suffixed with

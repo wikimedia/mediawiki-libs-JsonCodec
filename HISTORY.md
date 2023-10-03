@@ -1,5 +1,7 @@
 # Release History
 
+## x.x.x (not yet released)
+
 ## 2.2.0 (2023-10-03)
 * Add additional protected methods to JsonCodec to allow subclasses to
   further customize the encoding used.

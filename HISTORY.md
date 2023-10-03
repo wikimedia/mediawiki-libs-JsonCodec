@@ -1,6 +1,7 @@
 # Release History
 
 ## x.x.x (not yet released)
+* Allow symfony/polyfill-php81 ^1.27.0.
 
 ## 2.2.0 (2023-10-03)
 * Add additional protected methods to JsonCodec to allow subclasses to

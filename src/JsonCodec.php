@@ -43,7 +43,7 @@ class JsonCodec implements JsonCodecInterface {
 	 * is used to mark "complex" arrays, and as a place to store the contents
 	 * of any pre-existing array property that happened to have the same name.
 	 */
-	private const TYPE_ANNOTATION = '_type_';
+	protected const TYPE_ANNOTATION = '_type_';
 
 	/**
 	 * @param ?ContainerInterface $serviceContainer

@@ -2,6 +2,8 @@
 
 ## x.x.x (not yet released)
 * Allow psr/container ^2.0.2 (as well as ^1.1.2)
+* Export JsonCodec::TYPE_ANNOTATION to subclasses who might wish to
+  reassign where the type information is put.
 
 ## 2.2.1 (2023-10-03)
 * Allow symfony/polyfill-php81 ^1.27.0.

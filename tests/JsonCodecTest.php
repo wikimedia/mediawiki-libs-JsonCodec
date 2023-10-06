@@ -21,7 +21,7 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 					return $this->storage[$id];
 				}
 
-				public function has( $id ) {
+				public function has( $id ): bool {
 					return isset( $this->storage[$id] );
 				}
 

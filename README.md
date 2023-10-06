@@ -221,7 +221,11 @@ in the interface documentation for
 full example can be found in
 [`tests/TaggedValue.php`](./tests/TaggedValue.php).
 
-
+Further customization of the encoding of class names and class hints
+is available using the protected methods `JsonCodec::isArrayMarked()`,
+`JsonCodec::markArray()` and `JsonCodec::unmarkArray()`.  A full
+example can be found in
+[`tests/ReservedKeyCodec.php`](./tests/ReservedKeyCodec.php).
 
 Running tests
 -------------

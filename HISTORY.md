@@ -1,6 +1,6 @@
 # Release History
 
-## x.x.x (not yet released)
+## 2.2.2 (2023-11-17)
 * Allow psr/container ^2.0.2 (as well as ^1.1.2)
 * Export JsonCodec::TYPE_ANNOTATION to subclasses who might wish to
   reassign where the type information is put.

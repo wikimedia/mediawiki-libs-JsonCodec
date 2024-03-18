@@ -173,15 +173,15 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 			// Use '{...}' syntax for JSON encoding, even if all keys happen
 			// to be numeric
 			'numeric keys for array (no hint)' => [
-				[ 1,2,3 ], null,
+				[ 1, 2, 3 ], null,
 				'[1,2,3]'
 			],
 			'numeric keys for array (wrong hint)' => [
-				[ 1,2,3 ], stdClass::class,
+				[ 1, 2, 3 ], stdClass::class,
 				'{"0":1,"1":2,"2":3,"_type_":"array"}'
 			],
 			'numeric keys for stdClass (hinted)' => [
-				(object)[ 1,2,3 ], stdClass::class,
+				(object)[ 1, 2, 3 ], stdClass::class,
 				'{"0":1,"1":2,"2":3,"_type_":"stdClass"}'
 			],
 		];

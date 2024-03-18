@@ -38,16 +38,16 @@ class TaggedValue implements JsonCodecable {
 	 */
 	public static function tagToType( string $tag ): ?string {
 		switch ( $tag ) {
-		case 's':
-			return SampleObject::class;
-		case 'c':
-			return SampleContainerObject::class;
-		case 'm':
-			return ManagedObject::class;
-		default:
-			// Any other tag will explicitly encode the type of the value
-			// in the JSON.
-			return null;
+			case 's':
+				return SampleObject::class;
+			case 'c':
+				return SampleContainerObject::class;
+			case 'm':
+				return ManagedObject::class;
+			default:
+				// Any other tag will explicitly encode the type of the value
+				// in the JSON.
+				return null;
 		}
 	}
 

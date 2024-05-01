@@ -1,6 +1,7 @@
 # Release History
 
 ## x.x.x (not yet released)
+* Update dev dependencies.
 
 ## 2.2.2 (2023-11-17)
 * Allow psr/container ^2.0.2 (as well as ^1.1.2)

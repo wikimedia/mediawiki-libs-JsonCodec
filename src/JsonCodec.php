@@ -26,6 +26,7 @@ use Exception;
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use ReflectionClass;
 use stdClass;
 
 /**
@@ -130,12 +131,15 @@ class JsonCodec implements JsonCodecInterface {
 	 */
 	protected function codecFor( string $className ): ?JsonClassCodec {
 		$codec = $this->codecs[$className] ?? null;
-		if ( !$codec ) {
-			if ( !is_a( $className, JsonCodecable::class, true ) ) {
-				return null;
+		if ( $codec === null && is_a( $className, JsonCodecable::class, true ) ) {
+			// Check for class aliases to ensure we don't use split codecs
+			$trueName = ( new ReflectionClass( $className ) )->getName();
+			if ( $trueName !== $className ) {
+				$codec = $this->codecFor( $trueName );
+			} else {
+				$codec = $className::jsonClassCodec( $this, $this->serviceContainer );
 			}
-			$codec = $this->codecs[$className] =
-				$className::jsonClassCodec( $this, $this->serviceContainer );
+			$this->codecs[$className] = $codec;
 		}
 		return $codec;
 	}
@@ -149,7 +153,10 @@ class JsonCodec implements JsonCodecInterface {
 	 * @param JsonClassCodec $codec A codec to use for $className
 	 */
 	public function addCodecFor( string $className, JsonClassCodec $codec ): void {
-		if ( $this->codecs[$className] ?? false ) {
+		// Resolve aliases
+		$className = ( new ReflectionClass( $className ) )->getName();
+		// Sanity check
+		if ( isset( $this->codecs[$className] ) ) {
 			throw new InvalidArgumentException(
 				"Codec already present for $className"
 			);
@@ -223,7 +230,7 @@ class JsonCodec implements JsonCodecInterface {
 			// Ok, now mark the array, being careful to transfer away
 			// any fields with the same names as our markers.
 			if ( $is_complex || $classHint !== null ) {
-				// Even if $className === $classHint we need to record this
+				// Even if $className === $classHint we may need to record this
 				// array as "complex" (ie, requires recursion to process
 				// individual values during deserialization)
 				// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
@@ -365,7 +372,7 @@ class JsonCodec implements JsonCodecInterface {
 	 * @param 'array'|class-string $className The name of the class encoded
 	 *   by the codec, or else `array` if $value is a "complex" array or a
 	 *   "false mark"
-	 * @param class-string|'array'|null $classHint The class name provided as
+	 * @param 'array'|class-string|null $classHint The class name provided as
 	 *   a hint to the encoder, and which will be in turn provided as a hint
 	 *   to the decoder, or `null` if no hint was provided.  The class hint
 	 *   will be `array` when the array is a homogeneous list of objects.
@@ -375,7 +382,8 @@ class JsonCodec implements JsonCodecInterface {
 		// was already present in the array we've been given, in which case
 		// we need to escape it (by hoisting into a child array).
 		if ( array_key_exists( self::TYPE_ANNOTATION, $value ) ) {
-			if ( $className !== $classHint ) {
+			// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
+			if ( !self::classEquals( $className, $classHint ) ) {
 				$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION], $className ];
 			} else {
 				// Omit $className since it matches the $classHint, but we still
@@ -386,7 +394,8 @@ class JsonCodec implements JsonCodecInterface {
 				$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION] ];
 			}
 		} elseif (
-			$className !== $classHint ||
+			// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
+			( !self::classEquals( $className, $classHint ) ) ||
 			( array_is_list( $value ) && $className !== 'array' )
 		) {
 			// Include the type annotation if it doesn't match the hint;
@@ -427,4 +436,26 @@ class JsonCodec implements JsonCodecInterface {
 		return $className;
 	}
 
+	/**
+	 * Helper function to test two class strings for equality in the presence
+	 * of class aliases.
+	 *
+	 * @param 'array'|class-string $class1
+	 * @param 'array'|class-string|null $class2
+	 * @return bool True if the arguments refer to the same class
+	 */
+	private static function classEquals( string $class1, ?string $class2 ): bool {
+		if ( $class1 === $class2 ) {
+			// Fast path
+			return true;
+		}
+		if ( $class2 === null || $class1 === 'array' || $class2 === 'array' ) {
+			return false;
+		}
+		if ( is_a( $class1, $class2, true ) && is_a( $class2, $class1, true ) ) {
+			// Check aliases
+			return true;
+		}
+		return false;
+	}
 }

@@ -77,6 +77,7 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 			[ new SampleContainerObject( (object)[ 'a' => 1 ] ), false ],
 			[ new SampleContainerObject( new SampleObject( 'partially hinted' ) ), false ],
 			[ new SampleContainerObject( new SampleObject( 'suppress _type_' ) ), false ],
+			[ new SampleObjectAlias( 'alias' ), false ],
 		];
 	}
 
@@ -184,7 +185,40 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				(object)[ 1, 2, 3 ], stdClass::class,
 				'{"0":1,"1":2,"2":3,"_type_":"stdClass"}'
 			],
+
+			// Aliased hint
+			'sample object aliased hint' => [
+				new SampleObject( 'xyz' ), SampleObjectAlias::class,
+				'{"property":"xyz","_type_":["check123"]}'
+			],
 		];
 	}
 
+	/**
+	 * @covers ::toJsonString
+	 * @covers ::newFromJsonString
+	 * @dataProvider provideAliasedHints
+	 */
+	public function testAliasedHints( $jsonString, $classHint ) {
+		$c = new JsonCodec( self::getServices() );
+		$v = $c->newFromJsonString( $jsonString, $classHint );
+		$expected = new SampleObject( 'no hint' );
+		$this->assertEquals( $expected, $v );
+	}
+
+	public static function provideAliasedHints() {
+		// Json with non-aliased _type_
+		$jsonNoAlias = '{"property":"no hint","_type_":["check123","Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleObject"]}';
+
+		yield "Non-aliased type, no hint" => [ $jsonNoAlias, null ];
+		yield "Non-aliased type, true hint" => [ $jsonNoAlias, SampleObject::class ];
+		yield "Non-aliased type, aliased hint" => [ $jsonNoAlias, SampleObjectAlias::class ];
+
+		// Json with aliased _type_
+		// Note that the embedded type name is the *alias* in this test
+		$jsonAlias = '{"property":"no hint","_type_":["check123","Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleObjectAlias"]}';
+		yield "Aliased type, no hint" => [ $jsonAlias, null ];
+		yield "Aliased type, true hint" => [ $jsonAlias, SampleObject::class ];
+		yield "Aliased type, aliased hint" => [ $jsonAlias, SampleObjectAlias::class ];
+	}
 }

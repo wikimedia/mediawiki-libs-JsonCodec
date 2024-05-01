@@ -48,3 +48,4 @@ class SampleObject implements JsonCodecable {
 		return new SampleObject( $json['property'] );
 	}
 }
+class_alias( SampleObject::class, 'Wikimedia\\JsonCodec\\Tests\\SampleObjectAlias' );

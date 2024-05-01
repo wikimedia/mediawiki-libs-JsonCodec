@@ -159,7 +159,7 @@ class JsonCodec implements JsonCodecInterface {
 
 	/**
 	 * Recursively converts a given object to an associative array
-	 * which can be json-encoded.  (When embeddeding an object into
+	 * which can be json-encoded.  (When embedding an object into
 	 * another context it is sometimes useful to have the array
 	 * representation rather than the string JSON form of the array;
 	 * this can also be useful if you want to pretty-print the result,

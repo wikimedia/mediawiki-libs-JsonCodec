@@ -1,5 +1,7 @@
 # Release History
 
+## x.x.x (not yet released)
+
 ## 2.2.3 (2024-06-03)
 * Ensure class aliases are resolved when looking up type hints and
   class codecs (T353883).

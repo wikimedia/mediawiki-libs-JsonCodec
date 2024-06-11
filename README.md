@@ -209,6 +209,27 @@ homogenous list or array of the given type.
 A full example can be found in
 [`tests/SampleContainerObject.php`](./tests/SampleContainerObject.php).
 
+The hint can be suffixed with `-` to allow `::toJsonArray()` to
+return a list (see
+[`array_is_list`](https://www.php.net/manual/en/function.array-is-list.php))
+and have that list encoded as a JSON array, with square `[]` brackets.
+
+The hint can be suffixed with `+` to ensure that empty objects are
+serialized as `{}`.
+
+The `+` and `-` hints are necessary because normally JsonCodec
+attempts to encode all objects with curly `{}` brackets, inserting a
+`_type_` property in the encoded result where necessary to ensure that
+the encoded array is not a list, and therefore that PHP's
+`json_encode` will use `{}` notation.  If you don't want the added
+`_type_` property added to your encoded result, then you need to
+specify whether you prefer `[]` notation (`-` suffix) or `{}` notation
+(`+` suffix) to be used in ambiguous cases.
+
+An example with suffixed hints can be found in
+[`tests/SampleList.php`](./tests/SampleList.php) and its associated
+test cases.
+
 In some cases, `::jsonClassHintFor()` may be inadequate to describe
 the implicit typing of the JSON; for example tagged union values or
 implicitly-typed objects nested deeply or inside non-homogeneous

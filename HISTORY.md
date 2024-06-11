@@ -1,6 +1,8 @@
 # Release History
 
 ## x.x.x (not yet released)
+* Add new class hint suffixes '-' and '+' to customize encoding of
+  list-like objects.
 
 ## 2.2.3 (2024-06-03)
 * Ensure class aliases are resolved when looking up type hints and

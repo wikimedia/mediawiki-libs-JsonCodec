@@ -191,6 +191,41 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				new SampleObject( 'xyz' ), SampleObjectAlias::class,
 				'{"property":"xyz","_type_":["check123"]}'
 			],
+
+			// Hint suffixes + and -
+			'3-item list object, no hint' => [
+				new SampleList( 1, 2, 3 ), null,
+				'{"0":1,"1":2,"2":3,"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleList"}'
+			],
+			'3-item list object, hinted' => [
+				new SampleList( 1, 2, 3 ), SampleList::class,
+				// Despite the hint, we need to include the _type_ field to
+				// preserve the curly braces in the output.
+				'{"0":1,"1":2,"2":3,"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleList"}'
+			],
+			'3-item list object, - suffix' => [
+				new SampleList( 1, 2, 3 ), SampleList::class . '-',
+				// With the - suffix, we get array-like output.
+				'[1,2,3]'
+			],
+			'empty list object, no hint' => [
+				new SampleList(), null,
+				'{"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleList"}'
+			],
+			'empty list object, hinted' => [
+				new SampleList(), SampleList::class,
+				// Again, we need to add the _type_ field because otherwise
+				// this will serialize as '[]'
+				'{"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleList"}'
+			],
+			'list object, + suffix' => [
+				// But if you want `{}` you can use the + suffix
+				// Note that ::toJsonArray() may return a stdClass object,
+				// not an array, in this case.  Caller beware.
+				new SampleList(), SampleList::class . '+',
+				'{}'
+			],
+
 		];
 	}
 

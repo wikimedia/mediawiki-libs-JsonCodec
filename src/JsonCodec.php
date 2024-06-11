@@ -196,6 +196,18 @@ class JsonCodec implements JsonCodecInterface {
 			$arrayClassHint = substr( $classHint, 0, -2 );
 			$classHint = 'array';
 		}
+		$forceBraces = null;
+		if ( $classHint !== null ) {
+			if ( str_ends_with( $classHint, '-' ) ) {
+				// With a - suffix, allow list-like serializations to use []
+				$classHint = substr( $classHint, 0, -1 );
+				$forceBraces = false;
+			} elseif ( str_ends_with( $classHint, '+' ) ) {
+				// With a + suffix, force empty arrays to serialize as {}
+				$classHint = substr( $classHint, 0, -1 );
+				$forceBraces = true;
+			}
+		}
 		if ( is_object( $value ) ) {
 			$className = get_class( $value );
 			$codec = $this->codecFor( $className );
@@ -218,8 +230,8 @@ class JsonCodec implements JsonCodecInterface {
 						$codec->jsonClassHintFor( $className, (string)$key );
 					$v = $this->toJsonArray( $v, $propClassHint );
 					if (
-						$this->isArrayMarked( $v ) ||
-						$propClassHint !== null
+						$propClassHint !== null ||
+						$this->isArrayMarked( $v )
 					) {
 						// an array which contains complex components is
 						// itself complex.
@@ -230,6 +242,19 @@ class JsonCodec implements JsonCodecInterface {
 			// Ok, now mark the array, being careful to transfer away
 			// any fields with the same names as our markers.
 			if ( $is_complex || $classHint !== null ) {
+				if (
+					$forceBraces === null &&
+					$className !== 'array' &&
+					array_is_list( $value )
+				) {
+					// Include the type annotation (by clearing the
+					// hint) if $forceBraces isn't false and it is
+					// necessary to break up a list.  This ensures that
+					// all objects have a JSON encoding in the `{...}`
+					// style, even if they happen to have all-numeric
+					// keys.
+					$classHint = null;
+				}
 				// Even if $className === $classHint we may need to record this
 				// array as "complex" (ie, requires recursion to process
 				// individual values during deserialization)
@@ -237,6 +262,12 @@ class JsonCodec implements JsonCodecInterface {
 				$this->markArray(
 					$value, $className, $classHint
 				);
+				if ( $forceBraces === true && $value === [] ) {
+					// It is somewhat surprising for ::toJsonArray() to return
+					// an object (rather than an array), but allow this case
+					// if the class hint expressly asked for it.
+					$value = (object)$value;
+				}
 			}
 		} elseif ( !is_scalar( $value ) && $value !== null ) {
 			throw new InvalidArgumentException(
@@ -270,9 +301,15 @@ class JsonCodec implements JsonCodecInterface {
 		}
 		// Adjust class hint for arrays.
 		$arrayClassHint = null;
-		if ( $classHint !== null && str_ends_with( $classHint, '[]' ) ) {
-			$arrayClassHint = substr( $classHint, 0, -2 );
-			$classHint = 'array';
+		if ( $classHint !== null ) {
+			if ( str_ends_with( $classHint, '[]' ) ) {
+				$arrayClassHint = substr( $classHint, 0, -2 );
+				$classHint = 'array';
+			} elseif ( str_ends_with( $classHint, '-' ) ) {
+				$classHint = substr( $classHint, 0, -1 );
+			} elseif ( str_ends_with( $classHint, '+' ) ) {
+				$classHint = substr( $classHint, 0, -1 );
+			}
 		}
 		// Is this an array containing a complex value?
 		if (
@@ -395,13 +432,9 @@ class JsonCodec implements JsonCodecInterface {
 			}
 		} elseif (
 			// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
-			( !self::classEquals( $className, $classHint ) ) ||
-			( array_is_list( $value ) && $className !== 'array' )
+			!self::classEquals( $className, $classHint )
 		) {
-			// Include the type annotation if it doesn't match the hint;
-			// but also include it if necessary to break up a list. This
-			// ensures that all objects have an encoding in the '{...}' style,
-			// even if they happen to have all-numeric keys.
+			// Include the type annotation if it doesn't match the hint
 			$value[self::TYPE_ANNOTATION] = $className;
 		}
 	}

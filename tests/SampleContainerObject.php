@@ -3,6 +3,7 @@ namespace Wikimedia\JsonCodec\Tests;
 
 use stdClass;
 use Wikimedia\Assert\Assert;
+use Wikimedia\JsonCodec\Hint;
 use Wikimedia\JsonCodec\JsonCodecable;
 use Wikimedia\JsonCodec\JsonCodecableTrait;
 
@@ -52,14 +53,14 @@ class SampleContainerObject implements JsonCodecable {
 	}
 
 	/** @inheritDoc */
-	public static function jsonClassHintFor( string $keyName ): ?string {
+	public static function jsonClassHintFor( string $keyName ) {
 		if ( $keyName === 'contents' ) {
 			// Hint that the contained value is a SampleObject. It might be!
 			return SampleObject::class;
 		} elseif ( $keyName === 'array' ) {
-			// Hint that the contained value is a *array of* SampleObject.
+			// Hint that the contained value is a *list of* SampleObject.
 			// It might be!
-			return SampleObject::class . '[]';
+			return Hint::build( SampleObject::class, Hint::LIST );
 		} elseif ( $keyName === 'test' ) {
 			// This hint will always be correct; note that this is a key
 			// name not a property of SampleContainerObject

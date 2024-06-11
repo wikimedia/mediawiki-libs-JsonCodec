@@ -54,7 +54,7 @@ class ManagedObjectFactory implements JsonClassCodec {
 	}
 
 	/** @inheritDoc */
-	public function jsonClassHintFor( string $className, string $key ): ?string {
+	public function jsonClassHintFor( string $className, string $key ) {
 		// no hints
 		return null;
 	}

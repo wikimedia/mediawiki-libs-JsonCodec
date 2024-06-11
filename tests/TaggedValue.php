@@ -104,7 +104,7 @@ class TaggedValue implements JsonCodecable {
 			}
 
 			/** @inheritDoc */
-			public function jsonClassHintFor( string $className, string $keyName ): ?string {
+			public function jsonClassHintFor( string $className, string $keyName ) {
 				// Our 'class hint for' mechanism is insufficient for
 				// this use case since (a) the type of the 'value' key
 				// is not fixed, and (b) the type of the nested value

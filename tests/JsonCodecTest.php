@@ -4,6 +4,7 @@ namespace Wikimedia\JsonCodec\Tests;
 
 use Psr\Container\ContainerInterface;
 use stdClass;
+use Wikimedia\JsonCodec\Hint;
 use Wikimedia\JsonCodec\JsonCodec;
 
 /**
@@ -110,6 +111,9 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 
 	public function provideHintedValues() {
 		$factory = self::getServices()->get( 'ManagedObjectFactory' );
+		$fido = new Dog( 'Fido', 'roll over' );
+		$socks = new Cat( 'Socks', $fido );
+		$rover = new Dog( 'Rover' );
 		return [
 			'sample object no hint' => [
 				new SampleObject( 'no hint' ), null,
@@ -117,6 +121,10 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 			],
 			'sample object correct hint no _type_' => [
 				new SampleObject( 'suppress _type_' ), SampleObject::class,
+				'{"property":"suppress _type_"}'
+			],
+			'sample object correct Hint object no _type_' => [
+				new SampleObject( 'suppress _type_' ), new Hint( SampleObject::class ),
 				'{"property":"suppress _type_"}'
 			],
 			'sample object correct hint with _type_' => [
@@ -166,9 +174,35 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				'{"contents":{"property":"suppress _type_"},"test":{"_type_":"stdClass"},"array":[{"property":"suppress _type_"}]}'
 			],
 
+			// Lists of objects
+			'list of stdClass' => [
+				[ (object)[ 'a' => 1 ], (object)[ 'b' => 2 ] ],
+				Hint::build( stdClass::class, Hint::LIST ),
+				'[{"a":1},{"b":2}]'
+			],
+			'list of stdClass (deprecated string form)' => [
+				[ (object)[ 'a' => 1 ], (object)[ 'b' => 2 ] ],
+				stdClass::class . '[]',
+				'[{"a":1},{"b":2}]'
+			],
+			'stdClass of array' => [
+				(object)[ 'a' => [ 1, 2, 3 ], 'b' => [ 'x' => 8 ] ],
+				// @phan-suppress-next-line PhanUndeclaredClassReference
+				Hint::build( 'array', Hint::STDCLASS ),
+				'{"a":[1,2,3],"b":{"x":8}}'
+			],
+
+			// Tagged values
 			'tagged value correct hints' => [
 				new TaggedValue( 'm', $factory->lookup( 'a' ), new SampleObject( 'suppress _type_' ) ), TaggedValue::class,
 				'{"tag":"m","value":{"name":"a"},"nested":{"value":{"property":"suppress _type_"},"some other value":{"x":"y"}}}'
+			],
+
+			// Cats and dogs (Hint::INHERITED)
+			'cats and dogs' => [
+				[ $rover, $socks ],
+				Hint::build( Pet::class, Hint::INHERITED, Hint::LIST ),
+				'[{"name":"Rover","tricks":[]},{"name":"Socks","enemy":{"name":"Fido","tricks":["roll over"]}}]'
 			],
 
 			// Use '{...}' syntax for JSON encoding, even if all keys happen
@@ -192,7 +226,7 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				'{"property":"xyz","_type_":["check123"]}'
 			],
 
-			// Hint suffixes + and -
+			// Hint modifiers USE_SQUARE and ALLOW_OBJECT
 			'3-item list object, no hint' => [
 				new SampleList( 1, 2, 3 ), null,
 				'{"0":1,"1":2,"2":3,"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleList"}'
@@ -203,9 +237,9 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				// preserve the curly braces in the output.
 				'{"0":1,"1":2,"2":3,"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleList"}'
 			],
-			'3-item list object, - suffix' => [
-				new SampleList( 1, 2, 3 ), SampleList::class . '-',
-				// With the - suffix, we get array-like output.
+			'3-item list object, hinted USE_SQUARE' => [
+				new SampleList( 1, 2, 3 ), Hint::build( SampleList::class, Hint::USE_SQUARE ),
+				// With the USE_SQUARE modifier, we get array-like output.
 				'[1,2,3]'
 			],
 			'empty list object, no hint' => [
@@ -218,11 +252,11 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				// this will serialize as '[]'
 				'{"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleList"}'
 			],
-			'list object, + suffix' => [
-				// But if you want `{}` you can use the + suffix
+			'list object, hinted ALLOW_OBJECT' => [
+				// But if you want `{}` you can use the ALLOW_OBJECT hint
 				// Note that ::toJsonArray() may return a stdClass object,
 				// not an array, in this case.  Caller beware.
-				new SampleList(), SampleList::class . '+',
+				new SampleList(), Hint::build( SampleList::class, Hint::ALLOW_OBJECT ),
 				'{}'
 			],
 

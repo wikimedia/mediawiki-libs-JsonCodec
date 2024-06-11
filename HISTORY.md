@@ -1,8 +1,18 @@
 # Release History
 
 ## x.x.x (not yet released)
-* Add new class hint suffixes '-' and '+' to customize encoding of
-  list-like objects.
+* Add new class hint mechanism to generalize the method added in 2.1.0
+  to augment hints.  Class hints include:
+  * `Hint::LIST` to indicate an array of objects of the hinted class
+  * `Hint::STDCLASS` to indicate an `stdClass` object whose properties are
+    objects of the hinted class
+  * `Hint::USE_SQUARE` and `Hint::ALLOW_OBJECT` to customize encoding
+    of list-like objects.
+  * `Hint::INHERITED` to allow a superclass codec to handle instantiation of
+    its subclass objects.
+* The signatures of any method accepting or returning a class hint have
+  been broadened to include the new `Hint` type.  This is a breaking
+  change for methods where a hint was an argument.
 
 ## 2.2.3 (2024-06-03)
 * Ensure class aliases are resolved when looking up type hints and

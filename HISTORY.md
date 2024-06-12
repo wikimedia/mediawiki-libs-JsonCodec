@@ -1,6 +1,6 @@
 # Release History
 
-## x.x.x (not yet released)
+## 3.0.0 (2024-06-12)
 * Add new class hint mechanism to generalize the method added in 2.1.0
   to augment hints.  Class hints include:
   * `Hint::LIST` to indicate an array of objects of the hinted class

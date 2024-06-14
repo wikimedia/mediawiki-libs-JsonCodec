@@ -131,14 +131,21 @@ class JsonCodec implements JsonCodecInterface {
 	 */
 	protected function codecFor( string $className ): ?JsonClassCodec {
 		$codec = $this->codecs[$className] ?? null;
-		if ( $codec === null && is_a( $className, JsonCodecable::class, true ) ) {
-			// Check for class aliases to ensure we don't use split codecs
-			$trueName = ( new ReflectionClass( $className ) )->getName();
-			if ( $trueName !== $className ) {
-				$codec = $this->codecFor( $trueName );
-			} else {
-				$codec = $className::jsonClassCodec( $this, $this->serviceContainer );
+		if ( $codec !== null ) {
+			return $codec;
+		}
+		// Check for class aliases to ensure we don't use split codecs
+		$trueName = ( new ReflectionClass( $className ) )->getName();
+		if ( $trueName !== $className ) {
+			$codec = $this->codecs[$trueName] ?? null;
+			if ( $codec !== null ) {
+				$this->codecs[$className] = $codec;
+				return $codec;
 			}
+			$className = $trueName;
+		}
+		if ( is_a( $className, JsonCodecable::class, true ) ) {
+			$codec = $className::jsonClassCodec( $this, $this->serviceContainer );
 			$this->codecs[$className] = $codec;
 		}
 		return $codec;

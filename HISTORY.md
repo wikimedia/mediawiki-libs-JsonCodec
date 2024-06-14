@@ -1,5 +1,7 @@
 # Release History
 
+## x.x.x (not yet released)
+
 ## 3.0.1 (2024-06-14)
 * Refactor JsonCodec::codecFor() to be non-recursive.  This simplifies
   the implementation of extensions without worrying about recursive

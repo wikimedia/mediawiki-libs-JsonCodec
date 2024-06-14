@@ -387,6 +387,10 @@ class JsonCodec implements JsonCodecInterface {
 					// @phan-suppress-next-line PhanUndeclaredClassReference
 					$codec->jsonClassHintFor( $className, (string)$key )
 				);
+				if ( $value instanceof stdClass ) {
+					// Again, we *shouldn't* be given an object... but we might.
+					$value = (array)$value;
+				}
 				if (
 					is_array( $value ) && (
 						$this->isArrayMarked( $value ) || $propClassHint !== null

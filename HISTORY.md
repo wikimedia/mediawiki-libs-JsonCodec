@@ -4,6 +4,8 @@
 * Refactor JsonCodec::codecFor() to be non-recursive.  This simplifies
   the implementation of extensions without worrying about recursive
   calls to the subclass method.
+* Gracefully handle embedded stdClass objects passed to
+  ::newFromJsonArray().
 
 ## 3.0.0 (2024-06-12)
 * Add new class hint mechanism to generalize the method added in 2.1.0

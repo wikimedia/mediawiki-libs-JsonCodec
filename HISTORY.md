@@ -2,6 +2,7 @@
 
 ## x.x.x (not yet released)
 * Add generic template types to the Hint object.
+* Fix behavior of ALLOW_OBJECT hint for non-empty lists.
 
 ## 3.0.1 (2024-06-14)
 * Refactor JsonCodec::codecFor() to be non-recursive.  This simplifies

@@ -1,5 +1,7 @@
 # Release History
 
+## x.x.x (not yet released)
+
 ## 3.0.2 (2024-07-22)
 * Add generic template types to the Hint object.
 * Fix behavior of ALLOW_OBJECT hint for non-empty lists.

@@ -2,6 +2,7 @@
 
 ## x.x.x (not yet released)
 * Make Hint a Stringable class for easier debugging.
+* Improve InvalidArgumentException messages for easier debugging.
 
 ## 3.0.2 (2024-07-22)
 * Add generic template types to the Hint object.

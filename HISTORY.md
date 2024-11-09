@@ -1,5 +1,7 @@
 # Release History
 
+## x.x.x (not yet released)
+
 ## 3.0.3 (2024-11-09)
 * Make Hint a Stringable class for easier debugging.
 * Improve InvalidArgumentException messages for easier debugging.

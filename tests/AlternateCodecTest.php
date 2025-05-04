@@ -24,7 +24,7 @@ class AlternateCodecTest extends \PHPUnit\Framework\TestCase {
 		}
 	}
 
-	public function provideAlternateValues() {
+	public static function provideAlternateValues() {
 		return [
 			[ new AlternateObject( 'a' ), false ],
 		];

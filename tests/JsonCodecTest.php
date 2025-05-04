@@ -56,7 +56,7 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 		}
 	}
 
-	public function provideBasicValues() {
+	public static function provideBasicValues() {
 		return [
 			[ null ],
 			[ '' ],
@@ -70,7 +70,7 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 		];
 	}
 
-	public function provideCodecableValues() {
+	public static function provideCodecableValues() {
 		return [
 			[ new SampleObject( 'a' ), false ],
 			[ new SampleObject( 'abc123' ), false ],
@@ -82,7 +82,7 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 		];
 	}
 
-	public function provideManagedValues() {
+	public static function provideManagedValues() {
 		$factory = self::getServices()->get( 'ManagedObjectFactory' );
 		return [
 			[ $factory->lookup( 'a' ) ],
@@ -109,7 +109,7 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 		}
 	}
 
-	public function provideHintedValues() {
+	public static function provideHintedValues() {
 		$factory = self::getServices()->get( 'ManagedObjectFactory' );
 		$fido = new Dog( 'Fido', 'roll over' );
 		$socks = new Cat( 'Socks', $fido );

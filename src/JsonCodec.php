@@ -197,7 +197,6 @@ class JsonCodec implements JsonCodecInterface {
 		$is_complex = false;
 		$className = 'array';
 		$codec = null;
-		$classHintCodec = null;
 
 		// Process class hints
 		$arrayClassHint = null;

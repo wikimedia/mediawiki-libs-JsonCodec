@@ -47,6 +47,7 @@ abstract class Pet implements JsonCodecable {
 			case 'socks':
 				return Cat::newFromJsonArray( $json );
 			default:
+				// @phan-suppress-next-line PhanThrowTypeAbsent
 				throw new JsonException( 'unknown pet' );
 		}
 	}

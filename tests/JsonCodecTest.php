@@ -95,7 +95,7 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 	 * @covers ::newFromJsonString
 	 * @dataProvider provideHintedValues
 	 */
-	public function testClassHints( $value, $classHint, $encoding = null, $strict = false ) {
+	public function testClassHints( $value, $classHint, $encoding = null, $alternativeEncoding = null, $strict = false ) {
 		$c = new JsonCodec( self::getServices() );
 		$s = $c->toJsonString( $value, $classHint );
 		if ( $encoding !== null ) {
@@ -106,6 +106,14 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 			$this->assertSame( $value, $v );
 		} else {
 			$this->assertEquals( $value, $v );
+		}
+		if ( $alternativeEncoding !== null ) {
+			$v = $c->newFromJsonString( $alternativeEncoding, $classHint );
+			if ( $strict ) {
+				$this->assertSame( $value, $v );
+			} else {
+				$this->assertEquals( $value, $v );
+			}
 		}
 	}
 
@@ -259,7 +267,35 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				new SampleList(), Hint::build( SampleList::class, Hint::ALLOW_OBJECT ),
 				'{}'
 			],
-
+			// ONLY_FOR_DECODE hint
+			'empty list object, hint only for decode' => [
+				new SampleList(), Hint::build( SampleList::class, Hint::ALLOW_OBJECT, Hint::ONLY_FOR_DECODE ),
+				// Encoding still has the full type information:
+				'{"_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleList"}',
+				// But this simplified encoding also works for decode:
+				'{}'
+			],
+			'FutureContainer, hint only for decode' => [
+				new FutureContainer( "list1", new SampleObject( 'suppress _type_' ) ),
+				FutureContainer::class,
+				// Full type information.
+				'{"type":"list1","list1":{"0":{"property":"suppress _type_","_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleObject"},"_type_":"array"}}',
+				// But this simplified encoding also works:
+				'{"type":"list1","list1":[{"property":"suppress _type_"}]}'
+			],
+			'FutureContainer, partial hint only for decode' => [
+				new FutureContainer( "list2", new SampleObject( 'suppress _type_' ) ),
+				FutureContainer::class,
+				// Full type information.
+				'{"type":"list2","list2":[{"property":"suppress _type_","_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\SampleObject"}]}',
+				// But this simplified encoding also works:
+				'{"type":"list2","list2":[{"property":"suppress _type_"}]}'
+			],
+			'FutureContainer, full hint' => [
+				new FutureContainer( "list3", new SampleObject( 'suppress _type_' ) ),
+				FutureContainer::class,
+				'{"type":"list3","list3":[{"property":"suppress _type_"}]}'
+			],
 		];
 	}
 

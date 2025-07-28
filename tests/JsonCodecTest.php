@@ -16,7 +16,7 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 		static $services = null;
 		if ( !$services ) {
 			$services = new class implements ContainerInterface {
-				private $storage = [];
+				private array $storage = [];
 
 				public function get( $id ) {
 					return $this->storage[$id];

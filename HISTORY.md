@@ -3,6 +3,7 @@
 ## x.x.x (not yet released)
 * Add `Hint::ONLY_FOR_DECODE` to support forward-compatibility of
   serialized data.
+* Drop support for PHP < 8.1.
 
 ## 3.0.3 (2024-11-09)
 * Make `Hint` a `Stringable` class for easier debugging.

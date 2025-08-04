@@ -1,6 +1,6 @@
 # Release History
 
-## x.x.x (not yet released)
+## 4.0.0 (2025-08-04)
 * Add `Hint::ONLY_FOR_DECODE` to support forward-compatibility of
   serialized data.
 * Drop support for PHP < 8.1.

@@ -267,8 +267,6 @@ class JsonCodec implements JsonCodecInterface {
 				if ( is_object( $v ) || is_array( $v ) ) {
 					$propClassHint = $arrayClassHint;
 					$propClassHint ??= ( $codec === null ? null :
-						// phan can't tell that $codec is null when $className is 'array'
-						// @phan-suppress-next-line PhanUndeclaredClassReference
 						$codec->jsonClassHintFor( $className, (string)$key )
 					);
 					$v = $this->toJsonArray( $v, $propClassHint );
@@ -301,7 +299,6 @@ class JsonCodec implements JsonCodecInterface {
 				// Even if $className === $classHint we may need to record this
 				// array as "complex" (ie, requires recursion to process
 				// individual values during deserialization)
-				// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
 				$this->markArray(
 					$value, $className, $classHint
 				);
@@ -368,7 +365,6 @@ class JsonCodec implements JsonCodecInterface {
 			)
 		) {
 			// Read out our metadata
-			// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
 			$className = $this->unmarkArray( $json, $classHint );
 			// Create appropriate codec
 			$codec = null;
@@ -475,7 +471,6 @@ class JsonCodec implements JsonCodecInterface {
 		// was already present in the array we've been given, in which case
 		// we need to escape it (by hoisting into a child array).
 		if ( array_key_exists( self::TYPE_ANNOTATION, $value ) ) {
-			// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
 			if ( !self::classEquals( $className, $classHint ) ) {
 				$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION], $className ];
 			} else {
@@ -487,7 +482,6 @@ class JsonCodec implements JsonCodecInterface {
 				$value[self::TYPE_ANNOTATION] = [ $value[self::TYPE_ANNOTATION] ];
 			}
 		} elseif (
-			// @phan-suppress-next-line PhanUndeclaredClassReference 'array'
 			!self::classEquals( $className, $classHint )
 		) {
 			// Include the type annotation if it doesn't match the hint

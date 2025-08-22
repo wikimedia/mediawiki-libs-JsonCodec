@@ -104,16 +104,16 @@ class Hint implements Stringable {
 	 * `Hint::build(Foo::class, Hint::LIST, Hint::STDCLASS)`.
 	 *
 	 * @phan-template T
-	 * @param class-string<T> $className
+	 * @param class-string<T>|Hint<T> $classNameOrHint
 	 * @param int ...$modifiers
 	 * @return class-string<T>|Hint<T>
 	 */
-	public static function build( string $className, int ...$modifiers ) {
+	public static function build( string|Hint $classNameOrHint, int ...$modifiers ) {
 		if ( count( $modifiers ) === 0 ) {
-			return $className;
+			return $classNameOrHint;
 		}
 		$last = array_pop( $modifiers );
-		return new Hint( self::build( $className, ...$modifiers ), $last );
+		return new Hint( self::build( $classNameOrHint, ...$modifiers ), $last );
 	}
 
 	public function __toString(): string {

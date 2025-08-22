@@ -178,7 +178,7 @@ class SampleContainerObject implements JsonCodecable {
 			return SampleObject::class;
 		} elseif ( $keyName === 'foos' ) {
 			// A hint with a modifier
-			return Hint::build( Foo::class, Hint::LIST );
+			return Hint::build( Foo::class, HintType::LIST );
 		}
 		return null;
 	}
@@ -210,19 +210,19 @@ break serialization/deserialization.
 
 As illustrated with the `foos` property, to indicate a homogenous list
 or array of the given type, you can pass `Hint::build(....,
-Hint::LIST)` as the class hint.  A `stdClass` object where properties
+HintType::LIST)` as the class hint.  A `stdClass` object where properties
 are values of the given type can be hinted with `Hint::build(....,
-Hint::STDCLASS)`.
+HintType::STDCLASS)`.
 
 A full example can be found in
 [`tests/SampleContainerObject.php`](./tests/SampleContainerObject.php).
 
-The `Hint::USE_SQUARE` modifier allows `::toJsonArray()` to
+The `HintType::USE_SQUARE` modifier allows `::toJsonArray()` to
 return a list (see
 [`array_is_list`](https://www.php.net/manual/en/function.array-is-list.php))
 and have that list encoded as a JSON array, with square `[]` brackets.
 
-The `Hint::ALLOW_OBJECT` modifier ensures that empty objects are
+The `HintType::ALLOW_OBJECT` modifier ensures that empty objects are
 serialized as `{}`.  It has the side effect that `::toJsonArray()` may
 in some cases return an _object_ value instead of the _array_ value
 implied from the method name.
@@ -241,7 +241,7 @@ An example with hint modifiers can be found in
 test cases.
 
 Where a superclass codec can be used to instantiate objects of
-various subclasses the `Hint::INHERITED` modifier can be used.
+various subclasses the `HintType::INHERITED` modifier can be used.
 An example of this can be found in
 [`tests/Pet.php`](./tests/Pet.php),
 [`tests/Dog.php`](./tests/Dog.php), and
@@ -250,7 +250,7 @@ and their associated test cases in
 [`tests/JsonCodecTest.php`](./tests/JsonCodecTest.php).
 
 For forward-compatibility with JSON serialized with hints, you
-may specify `Hint::ONLY_FOR_DECODE` to indicate that serialization
+may specify `HintType::ONLY_FOR_DECODE` to indicate that serialization
 should ignore the hint (encoding full class information) but that
 deserialization should take the hint into account, so that it is
 possible to read encodings produced either with or without a

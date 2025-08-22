@@ -204,37 +204,37 @@ class JsonCodec implements JsonCodecInterface {
 		$allowInherited = false;
 		if ( is_string( $classHint ) && str_ends_with( $classHint, '[]' ) ) {
 			// back-compat
-			$classHint = new Hint( substr( $classHint, 0, -2 ), Hint::LIST );
+			$classHint = new Hint( substr( $classHint, 0, -2 ), HintType::LIST );
 		}
 		while ( $classHint instanceof Hint ) {
-			if ( $classHint->modifier === Hint::USE_SQUARE ) {
+			if ( $classHint->modifier === HintType::USE_SQUARE ) {
 				// Allow list-like serializations to use []
 				$classHint = $classHint->parent;
 				$forceBraces = false;
-			} elseif ( $classHint->modifier === Hint::ALLOW_OBJECT ) {
+			} elseif ( $classHint->modifier === HintType::ALLOW_OBJECT ) {
 				// Force empty arrays to serialize as {}
 				$classHint = $classHint->parent;
 				$forceBraces = true;
-			} elseif ( $classHint->modifier === Hint::LIST ) {
+			} elseif ( $classHint->modifier === HintType::LIST ) {
 				// Array whose values are the hinted type
 				$arrayClassHint = $classHint->parent;
 				$classHint = 'array';
-			} elseif ( $classHint->modifier === Hint::STDCLASS ) {
+			} elseif ( $classHint->modifier === HintType::STDCLASS ) {
 				// stdClass whose values are the hinted type
 				$arrayClassHint = $classHint->parent;
 				$classHint = stdClass::class;
-			} elseif ( $classHint->modifier === Hint::INHERITED ) {
+			} elseif ( $classHint->modifier === HintType::INHERITED ) {
 				// Allow the hint to match subclasses of the hinted class
 				$classHint = $classHint->parent;
 				$allowInherited = true;
-			} elseif ( $classHint->modifier === Hint::ONLY_FOR_DECODE ) {
+			} elseif ( $classHint->modifier === HintType::ONLY_FOR_DECODE ) {
 				// Don't use this hint for serialization.
 				$classHint = null;
-			} elseif ( $classHint->modifier === Hint::DEFAULT ) {
+			} elseif ( $classHint->modifier === HintType::DEFAULT ) {
 				// No-op, included for completeness
 				$classHint = $classHint->parent;
 			} else {
-				throw new InvalidArgumentException( 'bad hint modifier: ' . $classHint->modifier );
+				throw new InvalidArgumentException( 'bad hint modifier: ' . $classHint->modifier->name );
 			}
 		}
 		if ( is_object( $value ) ) {
@@ -344,13 +344,13 @@ class JsonCodec implements JsonCodecInterface {
 		$arrayClassHint = null;
 		if ( is_string( $classHint ) && str_ends_with( $classHint, '[]' ) ) {
 			// back-compat
-			$classHint = new Hint( substr( $classHint, 0, -2 ), Hint::LIST );
+			$classHint = new Hint( substr( $classHint, 0, -2 ), HintType::LIST );
 		}
 		while ( $classHint instanceof Hint ) {
-			if ( $classHint->modifier === Hint::LIST ) {
+			if ( $classHint->modifier === HintType::LIST ) {
 				$arrayClassHint = $classHint->parent;
 				$classHint = 'array';
-			} elseif ( $classHint->modifier === Hint::STDCLASS ) {
+			} elseif ( $classHint->modifier === HintType::STDCLASS ) {
 				$arrayClassHint = $classHint->parent;
 				$classHint = stdClass::class;
 			} else {

@@ -2,6 +2,7 @@
 
 ## x.x.x (not yet released)
 * Allow a Hint to be the first argument to Hint::build().
+* Make `Hint::*` constants into a `HintType` enumeration.
 
 ## 4.0.0 (2025-08-04)
 * Add `Hint::ONLY_FOR_DECODE` to support forward-compatibility of

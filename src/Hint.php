@@ -29,68 +29,32 @@ use Stringable;
  * @template T
  */
 class Hint implements Stringable {
-	/**
-	 * The default class hint behavior: an exact match for class name,
-	 * and the serialization for an object will always use curly
-	 * braces `{}` but the return value from `::toJsonArray()` will
-	 * always be an array.  This requires adding an explicit
-	 * `JsonCodec::TYPE_ANNOTATION` element to lists even if proper
-	 * type hints are supplied.
-	 */
-	public const DEFAULT = 0;
-	/**
-	 * A list of the hinted type.
-	 */
-	public const LIST = 1;
-	/**
-	 * A map of the hinted type.  The value is a stdClass object with
-	 * string keys and property values of the specified type.
-	 */
-	public const STDCLASS = 2;
-	/**
-	 * Prefer to use square brackets to serialize this object, when
-	 * possible. Not compatible with `ALLOW_OBJECT`.
-	 */
-	public const USE_SQUARE = 3;
-	/**
-	 * Tweak the return type of `JsonCodec::toJsonArray()` to return
-	 * a `stdClass` object instead of array where that makes it possible
-	 * to generate curly braces instead of adding an extra
-	 * `JsonCodec::TYPE_ANNOTATION` value.  Not compatible with `USE_SQUARE`.
-	 */
-	public const ALLOW_OBJECT = 4;
-	/**
-	 * The value is an `instanceof` the hinted type, and the
-	 * `JsonClassCodec` for the hinted type will be able to
-	 * deserialize the object.  This is useful for tagged objects of
-	 * various kinds, where a superclass can look at the json data to
-	 * determine which of its subclasses to instantiate.  Note that in
-	 * this case hints will be taken from the superclass's codec.
-	 */
-	public const INHERITED = 5;
-	/**
-	 * Mark the supplied hint for use only during deserialization
-	 * (`JsonCodec::newFromJsonArray`).  The full class information
-	 * will still be recorded during serialization (`::toJsonArray`).
-	 * This allows the hint to be used for forward-compatibility
-	 * with a future release that will utilize implicit class
-	 * information, without harming backward-compatibility by
-	 * (yet) omitting the explicit class information.
-	 */
-	public const ONLY_FOR_DECODE = 6;
 
-	/** @var class-string<T>|Hint<T> */
-	public $parent;
-	public int $modifier;
+	/** @see HintType::DEFAULT */
+	public const DEFAULT = HintType::DEFAULT;
+	/** @see HintType::LIST */
+	public const LIST = HintType::LIST;
+	/** @see HintType::STDCLASS */
+	public const STDCLASS = HintType::STDCLASS;
+	/** @see HintType::USE_SQUARE */
+	public const USE_SQUARE = HintType::USE_SQUARE;
+	/** @see HintType::ALLOW_OBJECT */
+	public const ALLOW_OBJECT = HintType::ALLOW_OBJECT;
+	/** @see HintType::INHERITED */
+	public const INHERITED = HintType::INHERITED;
+	/** @see HintType::ONLY_FOR_DECODE */
+	public const ONLY_FOR_DECODE = HintType::ONLY_FOR_DECODE;
 
 	/**
 	 * Create a new serialization class type hint.
 	 * @param class-string<T>|Hint<T> $parent
-	 * @param int $modifier A hint modifier
+	 * @param HintType $modifier A hint modifier
 	 */
-	public function __construct( $parent, int $modifier = 0 ) {
-		$this->parent = $parent;
-		$this->modifier = $modifier;
+	public function __construct(
+		/** @var class-string<T>|Hint<T> */
+		public readonly string|Hint $parent,
+		public readonly HintType $modifier = HintType::DEFAULT,
+	) {
 	}
 
 	/**
@@ -105,10 +69,10 @@ class Hint implements Stringable {
 	 *
 	 * @phan-template T
 	 * @param class-string<T>|Hint<T> $classNameOrHint
-	 * @param int ...$modifiers
+	 * @param HintType ...$modifiers
 	 * @return class-string<T>|Hint<T>
 	 */
-	public static function build( string|Hint $classNameOrHint, int ...$modifiers ) {
+	public static function build( string|Hint $classNameOrHint, HintType ...$modifiers ) {
 		if ( count( $modifiers ) === 0 ) {
 			return $classNameOrHint;
 		}
@@ -118,21 +82,6 @@ class Hint implements Stringable {
 
 	public function __toString(): string {
 		$parent = strval( $this->parent );
-		switch ( $this->modifier ) {
-			case self::DEFAULT:
-				return "DEFAULT($parent)";
-			case self::LIST:
-				return "LIST($parent)";
-			case self::STDCLASS:
-				return "STDCLASS($parent)";
-			case self::USE_SQUARE:
-				return "USE_SQUARE($parent)";
-			case self::ALLOW_OBJECT:
-				return "ALLOW_OBJECT($parent)";
-			case self::INHERITED:
-				return "INHERITED($parent)";
-			default:
-				return "UNKNOWN($parent)";
-		}
+		return "{$this->modifier->name}({$parent})";
 	}
 }

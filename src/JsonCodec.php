@@ -34,10 +34,10 @@ use stdClass;
  */
 class JsonCodec implements JsonCodecInterface {
 	/** @var ContainerInterface Service container */
-	protected ContainerInterface $serviceContainer;
+	protected readonly ContainerInterface $serviceContainer;
 
 	/** @var array<class-string,JsonClassCodec> Class codecs */
-	protected array $codecs;
+	protected array $codecs = [];
 
 	/**
 	 * Name of the property where class information is stored; it also

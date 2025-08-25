@@ -296,6 +296,56 @@ is available using the protected methods `JsonCodec::isArrayMarked()`,
 example can be found in
 [`tests/ReservedKeyCodec.php`](./tests/ReservedKeyCodec.php).
 
+### Type abbreviations
+The hint mechanism allows encodings to omit explicit type information
+in many cases, but generic container types may not be able to fully
+hint their contents.  Further, for cross-platform use it is useful to
+have a way to explicitly encode class types *without* using the
+literal name of a PHP class.  The type abbreviation mechanism allows
+the codec to define a standard set of abbreviations for PHP classes.
+Without hinting, the encoded JSON output might look like:
+```
+{"_type_":"\\My\\PHP\\Namespace\\ClassName", ...}
+```
+Calling `JsonCodec::addAbbrev()` allows you to define an abbreviation:
+```
+$codec->addAbbrev( 'my-type-abbreviation', ClassName::class );
+```
+and subsequently you can encode/decode:
+```
+{"_type_":"@my-type-abbreviation",...}
+```
+A cross-platform encoder can recognize `@my-type-abbreviation` and
+substitute an appropriate class implementation in a non-PHP language.
+
+Although JsonCodec supports PHP's `class_alias`, abbreviations also
+provide another way to allow the PHP implementation class to be
+renamed or renamespaced without breaking decode.
+
+For forward-compatibility, abbreviations added using
+`HintType::ONLY_FOR_DECODE` won't be used in the encoded string:
+```
+$codec->addAbbrev(
+  'my-type-abbreviation',
+  Hint::build(ClassName::class, HintType::ONLY_FOR_DECODE)
+);
+```
+
+Finally, the codec abbreviation registry provides a mechanism to
+generically provide hints for encode/decode. For example, a JSON-valued
+attribute mechanism for HTML might use the attribute name as the
+default hint to allow a generic getter:
+```
+public function getJsonAttribute(Element $element, string $name) {
+  $value = $element->getAttribute($name);
+  $hint = $this->codec->getAbbrev("attr-$name");
+  return $this->codec->newFromJsonString($value, $hint);
+}
+```
+Abbreviations can be added to the codec using
+`JsonCodec::addAbbrev()`, and registered abbreviations can be
+retrieved from the codec using `JsonCodec::getAbbrev()` as shown above.
+
 Running tests
 -------------
 

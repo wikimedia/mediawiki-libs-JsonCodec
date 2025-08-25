@@ -66,6 +66,20 @@ class Hint implements Stringable {
 		return new Hint( self::build( $classNameOrHint, ...$modifiers ), $last );
 	}
 
+	/**
+	 * Return true if the hint $a is the same as the hint $b.
+	 * @param class-string|Hint $a
+	 * @param class-string|Hint $b
+	 * @return bool
+	 */
+	public static function isSame( string|Hint $a, string|Hint $b ): bool {
+		if ( is_string( $a ) ) {
+			return is_string( $b ) && ( $a === $b );
+		}
+		return ( $b instanceof Hint ) && ( $a->modifier === $b->modifier ) &&
+			self::isSame( $a->parent, $b->parent );
+	}
+
 	public function __toString(): string {
 		$parent = strval( $this->parent );
 		return "{$this->modifier->name}({$parent})";

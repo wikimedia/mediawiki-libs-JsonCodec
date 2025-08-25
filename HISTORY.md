@@ -8,6 +8,10 @@
   instead.
 * Enum types are codecable by default, although you can still
   have them implement JsonCodecable to customize their serialization.
+* Added JsonCodec::addAbbrev() and ::getAbbrev() and a new Abbrev
+  wrapper type to allow abbreviating types in JSON encodings.  This
+  will allow generating encodings which are usable cross-platform
+  without including explicit PHP class names in the string.
 
 ## 4.0.0 (2025-08-04)
 * Add `Hint::ONLY_FOR_DECODE` to support forward-compatibility of

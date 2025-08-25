@@ -4,6 +4,7 @@ namespace Wikimedia\JsonCodec\Tests;
 
 use Psr\Container\ContainerInterface;
 use stdClass;
+use Wikimedia\JsonCodec\Abbrev;
 use Wikimedia\JsonCodec\Hint;
 use Wikimedia\JsonCodec\JsonCodec;
 
@@ -102,8 +103,14 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 	 * @covers ::newFromJsonString
 	 * @dataProvider provideHintedValues
 	 */
-	public function testClassHints( $value, $classHint, $encoding = null, $alternativeEncoding = null, $strict = false ) {
+	public function testClassHints( $value, $classHint, $encoding = null, $alternativeEncoding = null, $strict = false, $abbrev = null ) {
 		$c = new JsonCodec( self::getServices() );
+		if ( $classHint instanceof Abbrev ) {
+			$classHint = $c->addAbbrev( $classHint->name, $classHint->hint );
+		}
+		if ( $abbrev !== null ) {
+			$c->addAbbrev( $abbrev->name, $abbrev->hint );
+		}
 		$s = $c->toJsonString( $value, $classHint );
 		if ( $encoding !== null ) {
 			$this->assertEquals( $encoding, $s );
@@ -314,6 +321,40 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				Hint::build( CustomEnum::class, Hint::USE_SQUARE ),
 				'["III"]',
 			],
+			// Hint abbreviations
+			'abbreviated pets' => [
+				[ $rover, $socks ],
+				new Abbrev( 'pet', Hint::build( Pet::class, Hint::INHERITED, Hint::LIST ) ),
+				'[{"name":"Rover","tricks":[]},{"name":"Socks","enemy":{"name":"Fido","tricks":["roll over"]}}]'
+			],
+			'abbreviations in the encoding' => [
+				BareEnum::THREE,
+				new Abbrev( 'my-enum', BareEnum::class ),
+				'{"name":"THREE"}',
+				'{"_type_":"@my-enum","name":"THREE"}',
+			],
+			'abbreviations in the encoding, ONLY_FOR_DECODE' => [
+				BareEnum::THREE,
+				new Abbrev( 'my-enum', Hint::build( BareEnum::class, Hint::ONLY_FOR_DECODE ) ),
+				'{"name":"THREE","_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\BareEnum"}',
+				'{"_type_":"@my-enum","name":"THREE"}',
+			],
+			'abbreviation no hint' => [
+				BareEnum::THREE,
+				null,
+				'{"name":"THREE","_type_":"@my-enum"}',
+				null,
+				false,
+				new Abbrev( 'my-enum', BareEnum::class ),
+			],
+			'abbreviation no hint, ONLY_FOR_DECODE' => [
+				BareEnum::THREE,
+				null,
+				'{"name":"THREE","_type_":"Wikimedia\\\\JsonCodec\\\\Tests\\\\BareEnum"}',
+				'{"name":"THREE","_type_":"@my-enum"}',
+				false,
+				new Abbrev( 'my-enum', Hint::build( BareEnum::class, Hint::ONLY_FOR_DECODE ) ),
+			],
 		];
 	}
 
@@ -343,5 +384,31 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 		yield "Aliased type, no hint" => [ $jsonAlias, null ];
 		yield "Aliased type, true hint" => [ $jsonAlias, SampleObject::class ];
 		yield "Aliased type, aliased hint" => [ $jsonAlias, SampleObjectAlias::class ];
+	}
+
+	/**
+	 * @dataProvider provideBasicValues
+	 * @covers ::toJsonString
+	 * @covers ::newFromJsonString
+	 * @covers ::addAbbrev
+	 */
+	public function testAbbreviations( $value, $strict = true, $expectedOutput = null ) {
+		$codec = new class( self::getServices() ) extends JsonCodec {
+			public function __construct( ?ContainerInterface $services ) {
+				parent::__construct( $services );
+				$this->addAbbrev( "@class", stdClass::class );
+				$this->addAbbrev( "@SO", SampleObject::class );
+			}
+		};
+		$s = $codec->toJsonString( $value );
+		if ( $expectedOutput !== null ) {
+			$this->assertEquals( $expectedOutput, $s );
+		}
+		$v = $codec->newFromJsonString( $s );
+		if ( $strict ) {
+			$this->assertSame( $value, $v );
+		} else {
+			$this->assertEquals( $value, $v );
+		}
 	}
 }

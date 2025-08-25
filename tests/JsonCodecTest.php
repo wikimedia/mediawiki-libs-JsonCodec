@@ -188,11 +188,6 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				Hint::build( stdClass::class, Hint::LIST ),
 				'[{"a":1},{"b":2}]'
 			],
-			'list of stdClass (deprecated string form)' => [
-				[ (object)[ 'a' => 1 ], (object)[ 'b' => 2 ] ],
-				stdClass::class . '[]',
-				'[{"a":1},{"b":2}]'
-			],
 			'stdClass of array' => [
 				(object)[ 'a' => [ 1, 2, 3 ], 'b' => [ 'x' => 8 ] ],
 				// @phan-suppress-next-line PhanUndeclaredClassReference

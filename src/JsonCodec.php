@@ -342,10 +342,6 @@ class JsonCodec implements JsonCodecInterface {
 
 		// Process class hints
 		$arrayClassHint = null;
-		if ( is_string( $classHint ) && str_ends_with( $classHint, '[]' ) ) {
-			// back-compat
-			$classHint = new Hint( substr( $classHint, 0, -2 ), HintType::LIST );
-		}
 		while ( $classHint instanceof Hint ) {
 			if ( $classHint->modifier === HintType::LIST ) {
 				$arrayClassHint = $classHint->parent;

@@ -67,6 +67,11 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 			// even arrays which contain the "protected" field names should
 			// be fine.
 			[ [ '_type_' => 'lalala' ] ],
+			// BackedEnum types
+			[ [ 'one' => StringEnum::ONE, 'two' => StringEnum::TWO, ] ],
+			[ [ 'one' => IntEnum::ONE, 'two' => IntEnum::TWO, ] ],
+			// Not-backed enum types
+			[ [ 'one' => BareEnum::ONE, 'two' => BareEnum::TWO, ] ],
 		];
 	}
 
@@ -79,6 +84,8 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 			[ new SampleContainerObject( new SampleObject( 'partially hinted' ) ), false ],
 			[ new SampleContainerObject( new SampleObject( 'suppress _type_' ) ), false ],
 			[ new SampleObjectAlias( 'alias' ), false ],
+			// Customized serialization
+			[ [ 'one' => CustomEnum::ONE, 'two' => CustomEnum::TWO, ], true ],
 		];
 	}
 
@@ -290,6 +297,22 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 				new FutureContainer( "list3", new SampleObject( 'suppress _type_' ) ),
 				FutureContainer::class,
 				'{"type":"list3","list3":[{"property":"suppress _type_"}]}'
+			],
+			// Hinted enumerations
+			'BareEnum, full hint' => [
+				BareEnum::THREE,
+				BareEnum::class,
+				'{"name":"THREE"}',
+			],
+			'StringEnum, full hint' => [
+				StringEnum::THREE,
+				StringEnum::class,
+				'{"value":"three"}',
+			],
+			'CustomEnum, full hint' => [
+				CustomEnum::THREE,
+				Hint::build( CustomEnum::class, Hint::USE_SQUARE ),
+				'["III"]',
 			],
 		];
 	}

@@ -6,6 +6,8 @@
 * Remove old hint back-compatibility that allowed suffixing `[]` to a
   class-name string.  Use `Hint::build(Foo::class, HintType::LIST)`
   instead.
+* Enum types are codecable by default, although you can still
+  have them implement JsonCodecable to customize their serialization.
 
 ## 4.0.0 (2025-08-04)
 * Add `Hint::ONLY_FOR_DECODE` to support forward-compatibility of

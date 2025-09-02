@@ -137,6 +137,18 @@ class MyCustomJsonCodec extends JsonCodec {
 A full example can be found in
 [`tests/AlternateCodec.php`](./tests/AlternateCodec.php).
 
+### Enumerations
+
+PHP 8.1 enum types are codecable by default.  `BackedEnum` types
+serialize as `[ 'value' => ... ]` using their backing value, and
+other enum types serialize as `[ 'name' => ... ]` using their case
+name.  You can customize the serialization of the enum either by
+having your `Enum` type implement `JsonCodecable`, or by
+using the `::addCodecFor()` mechanism used for "non-codecable"
+objects.  Either of these is used in preference to the default
+[`JsonEnumClassCodec`](./src/JsonEnumClassCodec.php) which handles
+enums.
+
 ### More concise output
 
 By default JsonCodec embeds the class name of the appropriate object

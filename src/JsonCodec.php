@@ -28,6 +28,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use ReflectionClass;
 use stdClass;
+use UnitEnum;
 
 /**
  * Helper class to serialize/unserialize things to/from JSON.
@@ -146,6 +147,9 @@ class JsonCodec implements JsonCodecInterface {
 		}
 		if ( is_a( $className, JsonCodecable::class, true ) ) {
 			$codec = $className::jsonClassCodec( $this, $this->serviceContainer );
+			$this->codecs[$className] = $codec;
+		} elseif ( is_a( $className, UnitEnum::class, true ) ) {
+			$codec = JsonEnumClassCodec::getInstance();
 			$this->codecs[$className] = $codec;
 		}
 		return $codec;

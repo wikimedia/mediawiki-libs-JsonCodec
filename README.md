@@ -18,6 +18,7 @@ methods in your class, `toJsonArray()` and the static method
 `newFromJsonArray()`:
 ```php
 use Wikimedia\JsonCodec\JsonCodecable;
+use Wikimedia\JsonCodec\JsonCodecableTrait;
 
 class SampleObject implements JsonCodecable {
 	use JsonCodecableTrait;
@@ -49,6 +50,7 @@ If your class requires explicit management -- for example, object
 instances need to be created using a factory service, you can
 implement `JsonCodecable` directly:
 ```php
+use Psr\Container\ContainerInterface;
 use Wikimedia\JsonCodec\JsonCodecable;
 
 class ManagedObject implements JsonCodecable {
@@ -122,6 +124,9 @@ alternate serialization interface, you can subclass `JsonCodec` and
 override the protected `JsonCodec::codecFor()` method to return
 an appropriate codec.  Your code should look like this:
 ```php
+use Wikimedia\JsonCodec\JsonCodec;
+use Wikimedia\JsonCodec\JsonClassCodec;
+
 class MyCustomJsonCodec extends JsonCodec {
    protected function codecFor( string $className ): ?JsonClassCodec {
       $codec = parent::codecFor( $className );
@@ -161,6 +166,11 @@ information in the JSON when your provided hint matches what would
 have been added.  For example:
 
 ```
+use Wikimedia\JsonCodec\Hint;
+use Wikimedia\JsonCodec\HintType;
+use Wikimedia\JsonCodec\JsonCodecable;
+use Wikimedia\JsonCodec\JsonCodecableTrait;
+
 class SampleContainerObject implements JsonCodecable {
 	use JsonCodecableTrait;
 

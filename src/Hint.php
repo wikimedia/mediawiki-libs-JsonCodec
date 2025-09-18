@@ -67,7 +67,7 @@ class Hint implements Stringable {
 	 * values which are lists of Foo" is written 'backwards' as:
 	 * `Hint::build(Foo::class, Hint::LIST, Hint::STDCLASS)`.
 	 *
-	 * @phan-template T
+	 * @template T
 	 * @param class-string<T>|Hint<T> $classNameOrHint
 	 * @param HintType ...$modifiers
 	 * @return class-string<T>|Hint<T>

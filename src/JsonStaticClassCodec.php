@@ -49,11 +49,12 @@ class JsonStaticClassCodec implements JsonClassCodec {
 	/**
 	 * Creates a new instance of the given class and initializes it from the
 	 * $json array, using a static method on $className.
+	 *
+	 * @template T
 	 * @param class-string<T> $className
 	 * @param array $json
 	 * @return T
 	 * @inheritDoc
-	 * @phan-template T
 	 * @see JsonCodecableTrait
 	 */
 	public function newFromJsonArray( string $className, array $json ) {

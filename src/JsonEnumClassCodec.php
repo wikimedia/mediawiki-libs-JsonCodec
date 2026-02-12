@@ -15,9 +15,9 @@ use UnitEnum;
 /**
  * This is a simple class codec for instances of Enum types.
  * It is intended for use as a singleton helper to JsonCodec.
- * @phan-inherits JsonClassCodec<UnitEnum>
+ *
+ * @implements JsonClassCodec<UnitEnum>
  */
-// @phan-suppress-next-line PhanAccessWrongInheritanceCategory
 class JsonEnumClassCodec implements JsonClassCodec {
 
 	/**
@@ -27,7 +27,6 @@ class JsonEnumClassCodec implements JsonClassCodec {
 	 *
 	 * @param UnitEnum $obj An object of the type handled by this JsonClassCodec
 	 * @return array A Json representation of the object.
-	 * @inheritDoc
 	 */
 	public function toJsonArray( $obj ): array {
 		// @var Enum $obj
@@ -42,7 +41,6 @@ class JsonEnumClassCodec implements JsonClassCodec {
 	 * @param class-string<UnitEnum> $className
 	 * @param array $json
 	 * @return UnitEnum
-	 * @inheritDoc
 	 */
 	public function newFromJsonArray( string $className, array $json ) {
 		if ( is_a( $className, BackedEnum::class, true ) ) {

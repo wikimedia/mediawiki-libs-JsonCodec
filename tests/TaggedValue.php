@@ -56,6 +56,7 @@ class TaggedValue implements JsonCodecable {
 		JsonCodecInterface $codec,
 		ContainerInterface $serviceContainer
 	): JsonClassCodec {
+		/** @implements JsonClassCodec<TaggedValue> */
 		return new class( $codec ) implements JsonClassCodec {
 			/** @var JsonCodecInterface */
 			private JsonCodecInterface $codec;
@@ -99,7 +100,6 @@ class TaggedValue implements JsonCodecable {
 				$nestedValue = $this->codec->newFromJsonArray(
 					$json['nested']['value'], SampleObject::class
 				);
-				// @phan-suppress-next-line PhanTypeMismatchReturn limitations of phan generics
 				return new TaggedValue( $tag, $taggedValue, $nestedValue );
 			}
 

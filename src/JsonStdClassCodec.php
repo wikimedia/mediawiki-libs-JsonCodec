@@ -8,11 +8,13 @@ declare( strict_types=1 );
 
 namespace Wikimedia\JsonCodec;
 
+use stdClass;
+
 /**
  * This is a simple class codec used for `stdClass` objects.
+ *
  * @internal
- * @todo This class should @implements JsonClassCodec<stdClass> but phan's incomplete
- * support for generics doesn't allow that yet.
+ * @implements JsonClassCodec<stdClass>
  */
 class JsonStdClassCodec implements JsonClassCodec {
 
@@ -21,9 +23,8 @@ class JsonStdClassCodec implements JsonClassCodec {
 	 * can be deserialized with the corresponding newFromJsonArray() method,
 	 * using a ::toJsonArray() method on the object itself.
 	 *
-	 * @param object $obj An object of the type handled by this JsonClassCodec
+	 * @param stdClass $obj An object of the type handled by this JsonClassCodec
 	 * @return array A Json representation of the object.
-	 * @inheritDoc
 	 * @see JsonCodecableTrait
 	 */
 	public function toJsonArray( $obj ): array {
@@ -34,14 +35,11 @@ class JsonStdClassCodec implements JsonClassCodec {
 	 * Creates a new instance of the given class and initializes it from the
 	 * $json array, using a static method on $className.
 	 *
-	 * @template T
-	 * @param class-string<T> $className
+	 * @param class-string<stdClass> $className
 	 * @param array $json
-	 * @return T
-	 * @inheritDoc
+	 * @return stdClass
 	 */
 	public function newFromJsonArray( string $className, array $json ) {
-		// @phan-suppress-next-line PhanTypeMismatchReturn inadequate generics
 		return (object)$json;
 	}
 

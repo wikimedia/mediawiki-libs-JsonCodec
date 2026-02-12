@@ -15,6 +15,7 @@ class AlternateCodec extends JsonCodec {
 	protected function codecFor( string $className ): ?JsonClassCodec {
 		$codec = parent::codecFor( $className );
 		if ( $codec === null && is_a( $className, AlternateCodecable::class, true ) ) {
+			/** @implements JsonClassCodec<AlternateCodecable> */
 			$codec = new class() implements JsonClassCodec {
 				/** @inheritDoc */
 				public function toJsonArray( $obj ): array {

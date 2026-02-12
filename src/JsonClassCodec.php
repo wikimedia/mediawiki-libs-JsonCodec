@@ -14,7 +14,6 @@ namespace Wikimedia\JsonCodec;
  * They may maintain state and/or consult service objects which
  * are stored in the codec object.
  *
- *
  * @template T
  */
 interface JsonClassCodec {

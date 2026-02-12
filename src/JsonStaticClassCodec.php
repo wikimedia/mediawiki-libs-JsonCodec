@@ -13,6 +13,8 @@ namespace Wikimedia\JsonCodec;
  * This is a simple class codec which proxies to methods on the object for
  * serialization and a static method on the class for deserialization.
  * It is intended for use as a singleton helper to JsonCodecableTrait.
+ *
+ * @implements JsonClassCodec<JsonCodecableTrait>
  */
 class JsonStaticClassCodec implements JsonClassCodec {
 
@@ -36,10 +38,6 @@ class JsonStaticClassCodec implements JsonClassCodec {
 	 * Creates a new instance of the given class and initializes it from the
 	 * $json array, using a static method on $className.
 	 *
-	 * @template T
-	 * @param class-string<T> $className
-	 * @param array $json
-	 * @return T
 	 * @inheritDoc
 	 * @see JsonCodecableTrait
 	 */

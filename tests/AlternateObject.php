@@ -20,8 +20,7 @@ class AlternateObject implements AlternateCodecable {
 	// Implement AlternateCodecable
 
 	/** @inheritDoc */
-	#[\ReturnTypeWillChange]
-	public function jsonSerialize() {
+	public function jsonSerialize(): array {
 		return [ 'my custom field' => $this->property ];
 	}
 

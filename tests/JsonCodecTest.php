@@ -37,6 +37,11 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 			$factory->create( "a", 1 );
 			$factory->create( "b", 2 );
 			$services->set( 'ManagedObjectFactory', $factory );
+
+			$factory = new ServicesObjectFactory();
+			$factory->create( "c", 3 );
+			$factory->create( "d", 4 );
+			$services->set( 'ServicesObjectFactory', $factory );
 		}
 		return $services;
 	}
@@ -93,10 +98,13 @@ class JsonCodecTest extends \PHPUnit\Framework\TestCase {
 	}
 
 	public static function provideManagedValues() {
-		$factory = self::getServices()->get( 'ManagedObjectFactory' );
+		$factory1 = self::getServices()->get( 'ManagedObjectFactory' );
+		$factory2 = self::getServices()->get( 'ServicesObjectFactory' );
 		return [
-			[ $factory->lookup( 'a' ) ],
-			[ $factory->lookup( 'b' ) ],
+			[ $factory1->lookup( 'a' ), true ],
+			[ $factory1->lookup( 'b' ), true ],
+			[ $factory2->lookup( 'c' ), true ],
+			[ $factory2->lookup( 'd' ), true ],
 		];
 	}
 
